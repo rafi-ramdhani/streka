@@ -18,7 +18,7 @@ export function weekDayCounts(entries: LogEntry[], weekStart: string): number[] 
   for (const e of entries) {
     if (e.deleted || e.source === 'health') continue;
     const i = dayIndex.get(e.day);
-    if (i !== undefined) counts[i] += 1;
+    if (i !== undefined) counts[i] = (counts[i] ?? 0) + 1;
   }
   return counts;
 }

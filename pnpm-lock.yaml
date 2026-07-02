@@ -12,8 +12,11 @@ importers:
     dependencies:
       zustand:
         specifier: ^5.0.0
-        version: 5.0.14
+        version: 5.0.14(react@19.2.7)
     devDependencies:
+      react:
+        specifier: ^19.0.0
+        version: 19.2.7
       typescript:
         specifier: ^5.6.0
         version: 5.9.3
@@ -457,6 +460,10 @@ packages:
     resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
     engines: {node: ^10 || ^12 || >=14}
 
+  react@19.2.7:
+    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
+    engines: {node: '>=0.10.0'}
+
   rollup@4.62.2:
     resolution: {integrity: sha512-RFnrW4lhXA3s3eqHDZvN654g8OTjzRfqpIRJYczCGB6HzphckVAi/Qh4tbPUbRuDi7s1Llv8g/NspLkttY3gTA==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
@@ -899,6 +906,8 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  react@19.2.7: {}
+
   rollup@4.62.2:
     dependencies:
       '@types/estree': 1.0.9
@@ -1035,4 +1044,6 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  zustand@5.0.14: {}
+  zustand@5.0.14(react@19.2.7):
+    optionalDependencies:
+      react: 19.2.7
