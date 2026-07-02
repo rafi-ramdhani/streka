@@ -29,7 +29,21 @@ export function seedDemo(today: string): {
     const day = addDays(today, -i);
     switch (i % 4) {
       case 0:
-        push(day, 'workouts', 'session', { kind: 'workout', name: 'Upper body', mins: 45 });
+        // The older session (8 days out) holds the 62.5 kg month best; the
+        // recent one backs the prototype's "last: 60 kg × 8" chip.
+        push(day, 'workouts', 'session', {
+          kind: 'workout',
+          name: 'Upper body',
+          mins: 45,
+          exercises: [
+            { name: 'Bench press', topSet: i === 4 ? '60 kg × 8' : '62.5 kg × 6' },
+            { name: 'Incline dumbbell press', topSet: '22 kg × 10' },
+            { name: 'Overhead press', topSet: '40 kg × 8' },
+            { name: 'Lat pulldown', topSet: '55 kg × 10' },
+            { name: 'Seated row', topSet: '50 kg × 10' },
+            { name: 'Triceps pushdown', topSet: '25 kg × 12' },
+          ],
+        });
         break;
       case 1:
         push(day, 'running', 'gps', { kind: 'run', km: i === 5 ? 5.4 : 4.2 });
