@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { core } from '../src/core';
 import { colors } from '../src/theme';
 import { enterApp, enterAsReturning, useOnboarding } from '../src/stores/onboarding';
+import { useSession } from '../src/stores/session';
 
 // Dev-only state seeder for screenshot verification via deep links, e.g.
 //   exp://127.0.0.1:8081/--/dev?state=demo
@@ -19,6 +20,9 @@ export default function DevSeed() {
 
   useEffect(() => {
     if (__DEV__) {
+      // Seeding a state means starting over; a live session from the
+      // previous state would leak through otherwise.
+      if (state && useSession.getState().active) useSession.getState().discard();
       if (state === 'demo') {
         enterAsReturning();
       } else if (state === 'fresh') {
