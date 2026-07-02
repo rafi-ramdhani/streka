@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useLogs, useSettings, useSync } from '../../src/core';
+import { healthAppName, requestHealthPermissions } from '../../src/health';
 import { BigButton } from '../../src/components/BigButton';
 import { LogSheet } from '../../src/components/LogSheet';
 import { Pressable98 } from '../../src/components/Pressable98';
@@ -217,11 +218,15 @@ export default function Settings() {
 
       <Group>
         <Row
-          title="Apple Health"
+          title={healthAppName}
           sub={settings.healthConnected ? 'Connected · steps, sleep, runs' : 'Not connected'}
           subColor={settings.healthConnected ? colors.accentOnDark : colors.mutedDark}
           right={<Chevron />}
-          onPress={() => settings.set({ healthConnected: !settings.healthConnected })}
+          onPress={() => {
+            const on = !settings.healthConnected;
+            settings.set({ healthConnected: on });
+            if (on) void requestHealthPermissions();
+          }}
         />
         <Row
           title="Units"

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createMockScan, mockHealth } from './services';
+import { createMockScan } from './services';
 import { intentionalDays, streak } from './streak';
-import { seedDemo } from './seed';
+import { isDemoData, seedDemo } from './seed';
 
 const TODAY = '2026-07-02';
 
@@ -52,11 +52,11 @@ describe('createMockScan', () => {
   });
 });
 
-describe('mockHealth', () => {
-  it('fresh vs demo values', () => {
-    expect(mockHealth(true).todaySteps()).toBe(2104);
-    expect(mockHealth(true).lastSleep()).toBeNull();
-    expect(mockHealth(false).todaySteps()).toBe(8246);
-    expect(mockHealth(false).lastSleep()).toEqual({ h: 7, m: 20 });
+describe('isDemoData', () => {
+  it('detects seeded entries by id prefix', () => {
+    const { entries } = seedDemo('2026-07-02');
+    expect(isDemoData(entries)).toBe(true);
+    expect(isDemoData([{ id: 'uuid-1' }])).toBe(false);
+    expect(isDemoData([])).toBe(false);
   });
 });

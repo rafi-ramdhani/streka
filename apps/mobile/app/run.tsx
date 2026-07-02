@@ -225,7 +225,8 @@ function Live() {
         <View style={{ flexDirection: 'row', gap: 10, opacity: statsOpacity }}>
           <StatCard value={time} label="time" />
           <StatCard value={pace} label={imperial ? 'pace / mi' : 'pace / km'} />
-          <StatCard value={run.paused ? '121' : '148'} label="bpm · watch" />
+          {/* No watch integration in v1: an honest dash, never a fake pulse. */}
+          <StatCard value="—" label="bpm · watch" />
         </View>
 
         <View style={{ flex: 1, opacity: statsOpacity }}>

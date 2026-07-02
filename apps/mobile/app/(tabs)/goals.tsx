@@ -8,7 +8,8 @@ import {
   weeklyActiveDays,
   type LogEntry,
 } from '@streka/core';
-import { healthFor, useLogs, useSettings } from '../../src/core';
+import { useLogs, useSettings } from '../../src/core';
+import { useHealthToday } from '../../src/health';
 import { ProgressSegments } from '../../src/components/ProgressSegments';
 import { Pressable98 } from '../../src/components/Pressable98';
 import { Toggle } from '../../src/components/Toggle';
@@ -56,14 +57,15 @@ export default function Goals() {
   const daysLeft = 7 - dayIdx;
 
   // Steps this week: health entries in-week plus today's live count.
+  const health = useHealthToday();
   const weekSteps = useMemo(() => {
-    let sum = healthFor(fresh).todaySteps();
+    let sum = health.steps ?? 0;
     for (const e of entries) {
       if (e.deleted || e.data.kind !== 'steps' || e.day < weekStart || e.day >= today) continue;
       sum += e.data.count;
     }
     return sum;
-  }, [entries, weekStart, today, fresh]);
+  }, [entries, weekStart, today, health.steps]);
   const stepsPct = Math.round((weekSteps / settings.stepsGoalWeek) * 100);
 
   const weights = useMemo(

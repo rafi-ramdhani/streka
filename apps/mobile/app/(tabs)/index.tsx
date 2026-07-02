@@ -12,7 +12,9 @@ import {
   todayBoard,
   type LogEntry,
 } from '@streka/core';
-import { healthFor, logActivity, useLogs, useSettings } from '../../src/core';
+import { isDemoData } from '@streka/core';
+import { logActivity, useLogs, useSettings } from '../../src/core';
+import { healthAppName, useHealthToday } from '../../src/health';
 import { CoachMark } from '../../src/components/CoachMark';
 import { SlashMark } from '../../src/components/SlashMark';
 import { StreakChip } from '../../src/components/StreakChip';
@@ -72,16 +74,19 @@ export default function Board() {
   const today = dayOf(Date.now());
   const board = useMemo(() => todayBoard(entries, today), [entries, today]);
   const streakN = useMemo(() => streak(intentionalDays(entries), today), [entries, today]);
-  // Fresh = no history before today (day-1 board copy, low step counts).
+  // Fresh = no history before today (day-1 board copy).
   const fresh = useMemo(() => entries.every((e) => e.day === today), [entries, today]);
-  const health = healthFor(fresh);
+  // Demo dataset carries booked-class and watch copy; real accounts never
+  // see invented numbers.
+  const demo = useMemo(() => isDemoData(entries), [entries]);
+  const health = useHealthToday();
 
   const half = (width - 36 - 10) / 2;
   const full = width - 36;
 
-  const steps = health.todaySteps();
-  const stepsPct = Math.round((steps / settings.stepsGoalDay) * 100);
-  const sleep = health.lastSleep();
+  const steps = health.steps;
+  const stepsPct = Math.round(((steps ?? 0) / settings.stepsGoalDay) * 100);
+  const sleep = health.sleep;
 
   const lastWorkout = lastBefore(entries, today, 'workout');
   const lastRun = lastBefore(entries, today, 'run');
@@ -201,12 +206,14 @@ export default function Board() {
                   {settings.healthConnected ? 'Steps · auto' : 'Steps · phone only'}
                 </Txt>
                 <Txt size={38} w={900} ls={-0.03} lineHeight={1.1}>
-                  {steps.toLocaleString('en-US')}
+                  {steps === null ? '—' : steps.toLocaleString('en-US')}
                 </Txt>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Txt size={12} w={700} color={colors.accentOnDark}>
-                  {stepsPct}% of {settings.stepsGoalDay.toLocaleString('en-US')}
+                  {steps === null
+                    ? `goal ${settings.stepsGoalDay.toLocaleString('en-US')}`
+                    : `${stepsPct}% of ${settings.stepsGoalDay.toLocaleString('en-US')}`}
                 </Txt>
                 {progressBar(stepsPct, 120, 7)}
               </View>
@@ -312,7 +319,9 @@ export default function Board() {
             <Tile
               width={half}
               label="Weight"
-              title={formatWeight(board.weightKg ?? 72.4, settings.units)}
+              title={
+                board.weightKg !== undefined ? formatWeight(board.weightKg, settings.units) : '—'
+              }
               sub={weightSub}
               subColor={board.weightLoggedToday ? colors.accentOnDark : colors.mutedDark}
               plus
@@ -343,13 +352,13 @@ export default function Board() {
             <Tile
               width={half}
               label="Class"
-              title={board.classDone ? 'Attended ✓' : fresh ? '—' : 'Yoga 18:30'}
+              title={board.classDone ? 'Attended ✓' : demo ? 'Yoga 18:30' : '—'}
               sub={
                 board.classDone
                   ? 'logged today'
-                  : fresh
-                    ? 'tap + when you attend one'
-                    : 'booked · tap + when done'
+                  : demo
+                    ? 'booked · tap + when done'
+                    : 'tap + when you attend one'
               }
               plus={!board.classDone}
               onPress={
@@ -359,7 +368,7 @@ export default function Board() {
                       logActivity({
                         tracker: 'classes',
                         source: 'manual',
-                        data: { kind: 'class', name: fresh ? undefined : 'Yoga' },
+                        data: { kind: 'class', name: demo ? 'Yoga' : undefined },
                         title: 'Class logged',
                       })
               }
@@ -388,7 +397,11 @@ export default function Board() {
                 </Txt>
               </View>
               <Txt size={11.5} w={600} color={colors.mutedDark}>
-                {settings.healthConnected ? 'from watch' : 'connect Health to auto-fill'}
+                {settings.healthConnected
+                  ? sleep
+                    ? 'from watch'
+                    : 'no sleep data yet'
+                  : `connect ${healthAppName} to auto-fill`}
               </Txt>
             </View>
           ) : null}
@@ -404,7 +417,7 @@ export default function Board() {
         visible={sheet !== null}
         onClose={() => setSheet(null)}
       >
-        {sheet === 'workout' ? <WorkoutSheet fresh={fresh} onClose={() => setSheet(null)} /> : null}
+        {sheet === 'workout' ? <WorkoutSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'meal' ? <MealSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'run' ? <RunSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'swim' ? <SwimSheet onClose={() => setSheet(null)} /> : null}

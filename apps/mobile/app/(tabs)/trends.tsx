@@ -15,7 +15,8 @@ import {
   weeklyActiveDays,
   type LogEntry,
 } from '@streka/core';
-import { healthFor, useLogs, useSettings } from '../../src/core';
+import { useLogs, useSettings } from '../../src/core';
+import { useHealthToday } from '../../src/health';
 import { Pressable98 } from '../../src/components/Pressable98';
 import { Txt } from '../../src/components/Txt';
 import { colors } from '../../src/theme';
@@ -76,6 +77,7 @@ export default function Trends() {
     [entries],
   );
 
+  const health = useHealthToday();
   const bests = useMemo(() => {
     const monthStart = addDays(today, -30);
     let longestRun = 0;
@@ -87,9 +89,9 @@ export default function Trends() {
       if (e.data.kind === 'steps') bestSteps = Math.max(bestSteps, e.data.count);
       if (e.data.kind === 'workout') anyWorkout = true;
     }
-    bestSteps = Math.max(bestSteps, healthFor(false).todaySteps());
+    if (health.steps !== null) bestSteps = Math.max(bestSteps, health.steps);
     return { longestRun, bestSteps, anyWorkout, lift: bestLift(entries, monthStart) };
-  }, [entries, today]);
+  }, [entries, today, health.steps]);
 
   const segBtn = (label: string, value: 'week' | 'month') => {
     const on = period === value;
@@ -360,7 +362,7 @@ export default function Trends() {
             </View>
             <View style={{ flex: 1 }}>
               <Txt size={17} w={900}>
-                {bests.bestSteps.toLocaleString('en-US')}
+                {bests.bestSteps > 0 ? bests.bestSteps.toLocaleString('en-US') : '—'}
               </Txt>
               <Txt size={10.5} w={600} color={colors.mutedDark}>
                 best step day

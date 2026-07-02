@@ -32,7 +32,7 @@ interface SessionState {
 // Starter plans behind the workout sheet templates. Exercise counts match the
 // sheet metas (6 · ~45 min, 5 · ~40 min, 8 · ~30 min). Set labels are honest
 // rep prescriptions until logged history provides a real top set to aim at.
-const TEMPLATES: Record<string, { name: string; sets: string[] }[]> = {
+export const TEMPLATES: Record<string, { name: string; sets: string[] }[]> = {
   'Upper body': [
     { name: 'Bench press', sets: ['8 reps', '8 reps', '8 reps'] },
     { name: 'Incline dumbbell press', sets: ['10 reps', '10 reps', '10 reps'] },

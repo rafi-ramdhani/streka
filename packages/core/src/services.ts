@@ -54,18 +54,6 @@ export function createMockScan(delayMs = 1400): ScanService {
   };
 }
 
-export interface HealthProvider {
-  todaySteps: () => number;
-  lastSleep: () => { h: number; m: number } | null;
-}
-
-export function mockHealth(fresh: boolean): HealthProvider {
-  return {
-    todaySteps: () => (fresh ? 2104 : 8246),
-    lastSleep: () => (fresh ? null : { h: 7, m: 20 }),
-  };
-}
-
 export interface SyncService {
   push: (count: number) => Promise<void>;
 }

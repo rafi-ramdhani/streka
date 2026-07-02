@@ -6,6 +6,12 @@ import type { LogData, LogEntry, LogSource, Settings, TrackerId } from './types'
 // Used by the returning-account path, the web app, and dev verification.
 // A fresh onboarding never sees this. Trends render from these real logs;
 // the prototype's static bar heights are illustrative only.
+// Screens show the prototype's illustrative health numbers only while the
+// demo dataset is loaded; seeded entries are recognizable by their ids.
+export function isDemoData(entries: Pick<LogEntry, 'id'>[]): boolean {
+  return entries.some((e) => e.id.startsWith('seed-'));
+}
+
 export function seedDemo(today: string): {
   entries: LogEntry[];
   settings: Partial<Settings>;

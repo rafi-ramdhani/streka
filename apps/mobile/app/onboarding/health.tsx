@@ -5,6 +5,7 @@ import { BigButton, LinkButton } from '../../src/components/BigButton';
 import { Check } from '../../src/components/Check';
 import { ObFrame } from '../../src/components/ObFrame';
 import { Txt } from '../../src/components/Txt';
+import { healthAppName, requestHealthPermissions } from '../../src/health';
 import { useOnboarding } from '../../src/stores/onboarding';
 import { colors } from '../../src/theme';
 
@@ -33,6 +34,7 @@ export default function Health() {
   const setHealth = useOnboarding((s) => s.setHealth);
   const go = (on: boolean) => {
     setHealth(on);
+    if (on) void requestHealthPermissions();
     router.push('/onboarding/account');
   };
 
@@ -40,10 +42,10 @@ export default function Health() {
     <ObFrame
       step={4}
       headline={'Let your watch do\nthe boring logging'}
-      sub="Steps and sleep fill in automatically from Apple Health. Nothing leaves your phone without sync on."
+      sub={`Steps and sleep fill in automatically from ${healthAppName}. Nothing leaves your phone without sync on.`}
       footer={
         <>
-          <BigButton label="CONNECT APPLE HEALTH" onPress={() => go(true)} />
+          <BigButton label={`CONNECT ${healthAppName.toUpperCase()}`} onPress={() => go(true)} />
           <LinkButton label="Skip — log everything myself" onPress={() => go(false)} pad={8} />
         </>
       }

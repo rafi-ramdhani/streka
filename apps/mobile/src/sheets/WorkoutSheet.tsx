@@ -1,33 +1,35 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { logActivity } from '../core';
-import { useSession } from '../stores/session';
+import { dayOf, lastWorkoutDay } from '@streka/core';
+import { logActivity, useLogs } from '../core';
+import { TEMPLATES, useSession } from '../stores/session';
 import { colors } from '../theme';
 import { Pressable98 } from '../components/Pressable98';
 import { Txt } from '../components/Txt';
 
-// Proto:638-652. Template metas switch between the starter-plan copy (fresh
-// board) and the recent-history copy (demo data).
-const TEMPLATES = (fresh: boolean) => [
-  {
-    name: 'Upper body',
-    meta: fresh ? '6 exercises · ~45 min · starter plan' : '6 exercises · ~45 min · done Tue',
-    primary: true,
-  },
-  {
-    name: 'Lower body',
-    meta: fresh ? '5 exercises · ~40 min · starter plan' : '5 exercises · ~40 min · done Sun',
-    primary: false,
-  },
-  {
-    name: 'Full body 30',
-    meta: fresh ? '8 exercises · ~30 min · starter plan' : '8 exercises · ~30 min · done Jun 24',
-    primary: false,
-  },
+// Proto:638-652. Exercise counts come from the real templates; the trailing
+// meta is the last time this template was actually logged, or the
+// starter-plan copy when it never was.
+const SHEET_TEMPLATES = [
+  { name: 'Upper body', mins: 45, primary: true },
+  { name: 'Lower body', mins: 40, primary: false },
+  { name: 'Full body 30', mins: 30, primary: false },
 ];
 
-export function WorkoutSheet({ fresh, onClose }: { fresh: boolean; onClose: () => void }) {
+function doneLabel(day: string | null): string {
+  if (!day) return 'starter plan';
+  const d = new Date(`${day}T12:00:00`);
+  const ageDays = Math.round((Date.parse(`${dayOf(Date.now())}T12:00:00`) - d.getTime()) / 86_400_000);
+  const label =
+    ageDays <= 6
+      ? d.toLocaleDateString('en-US', { weekday: 'short' })
+      : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return `done ${label}`;
+}
+
+export function WorkoutSheet({ onClose }: { onClose: () => void }) {
+  const entries = useLogs((s) => s.entries);
   const start = useSession((s) => s.start);
   const begin = (name: string) => {
     onClose();
@@ -41,7 +43,7 @@ export function WorkoutSheet({ fresh, onClose }: { fresh: boolean; onClose: () =
         <Txt size={11} w={700} ls={0.06} upper color={colors.mutedDark}>
           Recent
         </Txt>
-        {TEMPLATES(fresh).map((t) => (
+        {SHEET_TEMPLATES.map((t) => (
           <Pressable98
             key={t.name}
             onPress={() => begin(t.name)}
@@ -62,7 +64,9 @@ export function WorkoutSheet({ fresh, onClose }: { fresh: boolean; onClose: () =
                 {t.name}
               </Txt>
               <Txt size={11.5} w={600} color={colors.mutedDark} style={{ marginTop: 1 }}>
-                {t.meta}
+                {`${TEMPLATES[t.name]!.length} exercises · ~${t.mins} min · ${doneLabel(
+                  lastWorkoutDay(entries, t.name),
+                )}`}
               </Txt>
             </View>
             <View

@@ -52,6 +52,17 @@ export function summarizeSession(
   });
 }
 
+// Most recent day a named workout was completed; drives the template
+// sheet's "done Tue" metas instead of invented copy.
+export function lastWorkoutDay(entries: LogEntry[], name: string): string | null {
+  let day: string | null = null;
+  for (const e of entries) {
+    if (e.deleted || e.data.kind !== 'workout' || e.data.name !== name) continue;
+    if (day === null || e.day > day) day = e.day;
+  }
+  return day;
+}
+
 // Heaviest lift on record (optionally since a day), for the bests card.
 export function bestLift(
   entries: LogEntry[],

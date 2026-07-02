@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LogEntry } from './types';
-import { bestLift, lastTopSet, maxWeightKg, summarizeSession } from './workouts';
+import { bestLift, lastTopSet, lastWorkoutDay, maxWeightKg, summarizeSession } from './workouts';
 
 function workout(
   id: string,
@@ -112,5 +112,17 @@ describe('summarizeSession', () => {
     expect(summarizeSession([{ name: 'Squat', sets: [{ label: '8 reps', done: false }] }])).toEqual(
       [],
     );
+  });
+});
+
+describe('lastWorkoutDay', () => {
+  it('returns the most recent day a named workout was logged', () => {
+    const entries = [
+      workout('a', '2026-06-20', []),
+      workout('b', '2026-06-28', []),
+      { ...workout('c', '2026-06-30', []), deleted: true },
+    ];
+    expect(lastWorkoutDay(entries, 'Upper body')).toBe('2026-06-28');
+    expect(lastWorkoutDay(entries, 'Lower body')).toBeNull();
   });
 });
