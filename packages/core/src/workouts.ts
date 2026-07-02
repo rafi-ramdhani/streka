@@ -30,6 +30,28 @@ export function lastTopSet(entries: LogEntry[], exercise: string): string | null
   return top;
 }
 
+// Summarize a finished live session into WorkoutData.exercises: only
+// exercises with at least one completed set count, and the top set is the
+// heaviest weighted one, falling back to the last completed set.
+export function summarizeSession(
+  exercises: { name: string; sets: { label: string; done: boolean }[] }[],
+): { name: string; topSet: string }[] {
+  return exercises.flatMap((ex) => {
+    const done = ex.sets.filter((s) => s.done);
+    if (done.length === 0) return [];
+    let top = done[done.length - 1]!.label;
+    let topKg = -Infinity;
+    for (const s of done) {
+      const kg = maxWeightKg([s.label]);
+      if (kg !== null && kg > topKg) {
+        topKg = kg;
+        top = s.label;
+      }
+    }
+    return [{ name: ex.name, topSet: top }];
+  });
+}
+
 // Heaviest lift on record (optionally since a day), for the bests card.
 export function bestLift(
   entries: LogEntry[],

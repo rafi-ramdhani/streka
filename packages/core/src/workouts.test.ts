@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LogEntry } from './types';
-import { bestLift, lastTopSet, maxWeightKg } from './workouts';
+import { bestLift, lastTopSet, maxWeightKg, summarizeSession } from './workouts';
 
 function workout(
   id: string,
@@ -74,5 +74,43 @@ describe('bestLift', () => {
 
   it('returns null when no exercise carries a weight', () => {
     expect(bestLift([workout('c', '2026-06-28', [{ name: 'Plank', topSet: '40 sec' }])])).toBeNull();
+  });
+});
+
+describe('summarizeSession', () => {
+  it('keeps only exercises with done sets, top set is the heaviest', () => {
+    expect(
+      summarizeSession([
+        {
+          name: 'Bench press',
+          sets: [
+            { label: '60 kg × 8', done: true },
+            { label: '62.5 kg × 6', done: true },
+            { label: '65 kg × 4', done: false },
+          ],
+        },
+        { name: 'Overhead press', sets: [{ label: '40 kg × 8', done: false }] },
+      ]),
+    ).toEqual([{ name: 'Bench press', topSet: '62.5 kg × 6' }]);
+  });
+
+  it('falls back to the last done set when no label parses as weight', () => {
+    expect(
+      summarizeSession([
+        {
+          name: 'Plank',
+          sets: [
+            { label: '40 sec', done: true },
+            { label: '45 sec', done: true },
+          ],
+        },
+      ]),
+    ).toEqual([{ name: 'Plank', topSet: '45 sec' }]);
+  });
+
+  it('returns empty when nothing was completed', () => {
+    expect(summarizeSession([{ name: 'Squat', sets: [{ label: '8 reps', done: false }] }])).toEqual(
+      [],
+    );
   });
 });

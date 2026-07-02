@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { lastTopSet, maxWeightKg } from '@streka/core';
+import { lastTopSet, summarizeSession } from '@streka/core';
 import { core, logActivity } from '../core';
 import { kvStorage } from '../db';
 
@@ -112,22 +112,7 @@ export const useSession = create<SessionState>()(
       finish: () => {
         const { startTs, name, exercises } = get();
         const mins = Math.max(1, Math.round((Date.now() - startTs) / 60000));
-        // Summarize only exercises with completed sets; the top set is the
-        // heaviest weighted one, or the last done set when nothing parses.
-        const done = exercises.flatMap((ex) => {
-          const doneSets = ex.sets.filter((s) => s.done);
-          if (doneSets.length === 0) return [];
-          let top = doneSets[doneSets.length - 1]!.label;
-          let topKg = -Infinity;
-          for (const s of doneSets) {
-            const kg = maxWeightKg([s.label]);
-            if (kg !== null && kg > topKg) {
-              topKg = kg;
-              top = s.label;
-            }
-          }
-          return [{ name: ex.name, topSet: top }];
-        });
+        const done = summarizeSession(exercises);
         logActivity({
           tracker: 'workouts',
           source: 'session',
