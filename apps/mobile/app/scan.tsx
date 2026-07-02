@@ -1,6 +1,8 @@
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback } from 'react';
-import { ScrollView, View } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { Image, ScrollView, View } from 'react-native';
 import { scanRange } from '@streka/core';
 import { colors } from '../src/theme';
 import { Pressable98 } from '../src/components/Pressable98';
@@ -9,8 +11,9 @@ import { Txt } from '../src/components/Txt';
 import { useFoodScan } from '../src/stores/foodScan';
 import { goBack } from '../src/lib/nav';
 
-// Striped placeholder (camera viewfinder and food photos are placeholders by
-// design; a real camera lands with the LLM backend, TAD 5.2).
+// Fallback when there is no captured photo (no permission, no hardware, or
+// a dev-seeded scan). The kcal numbers stay mocked until the LLM backend
+// lands (TAD 5.2); the viewfinder and photos are real.
 function PhotoPlaceholder({ size }: { size: number }) {
   return (
     <View
@@ -28,6 +31,12 @@ function PhotoPlaceholder({ size }: { size: number }) {
       </Txt>
     </View>
   );
+}
+
+function ScanPhoto({ size }: { size: number }) {
+  const uri = useFoodScan((s) => s.photoUri);
+  if (!uri) return <PhotoPlaceholder size={size} />;
+  return <Image source={{ uri }} style={{ width: size, height: size, borderRadius: 16 }} />;
 }
 
 function Corner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
@@ -60,8 +69,48 @@ function Corner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
 
 function Camera() {
   const scan = useFoodScan();
+  const camRef = useRef<CameraView>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const live = permission?.granted === true;
+
+  useEffect(() => {
+    if (permission && !permission.granted && permission.canAskAgain) void requestPermission();
+  }, [permission, requestPermission]);
+
+  // If the camera cannot deliver a shot (simulator, denied permission), the
+  // scan still runs; the result just shows the placeholder thumbnail.
+  const snap = async () => {
+    let uri: string | undefined;
+    try {
+      const photo = await camRef.current?.takePictureAsync({ quality: 0.6 });
+      uri = photo?.uri;
+    } catch {
+      uri = undefined;
+    }
+    await scan.takePhoto(uri);
+  };
+
+  const pickFromPhotos = async () => {
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.6,
+      });
+      if (!res.canceled && res.assets[0]) await scan.takePhoto(res.assets[0].uri);
+    } catch {
+      // Picker unavailable; stay on the camera.
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#0a0d09' }}>
+      {live ? (
+        <CameraView
+          ref={camRef}
+          facing="back"
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+      ) : null}
       <View
         style={{
           position: 'absolute',
@@ -117,20 +166,28 @@ function Camera() {
           <Corner pos="tr" />
           <Corner pos="bl" />
           <Corner pos="br" />
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <View
-              style={{
-                backgroundColor: 'rgba(10,13,9,.75)',
-                borderRadius: 8,
-                paddingVertical: 8,
-                paddingHorizontal: 14,
-              }}
-            >
-              <Txt size={11} w={600} color={colors.mutedDark} ls={0.06} style={{ fontFamily: 'Menlo' }}>
-                camera · your plate
-              </Txt>
+          {live ? null : (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <View
+                style={{
+                  backgroundColor: 'rgba(10,13,9,.75)',
+                  borderRadius: 8,
+                  paddingVertical: 8,
+                  paddingHorizontal: 14,
+                }}
+              >
+                <Txt
+                  size={11}
+                  w={600}
+                  color={colors.mutedDark}
+                  ls={0.06}
+                  style={{ fontFamily: 'Menlo' }}
+                >
+                  camera · your plate
+                </Txt>
+              </View>
             </View>
-          </View>
+          )}
         </View>
       </View>
 
@@ -151,7 +208,9 @@ function Camera() {
           gap: 34,
         }}
       >
-        <View
+        <Pressable98
+          onPress={() => void pickFromPhotos()}
+          scaleTo={0.93}
           style={{
             width: 44,
             height: 44,
@@ -164,9 +223,9 @@ function Camera() {
           <Txt size={9.5} w={800} color="#c7cec6" center lineHeight={1.2}>
             FROM{'\n'}PHOTOS
           </Txt>
-        </View>
+        </Pressable98>
         <Pressable98
-          onPress={() => void scan.takePhoto()}
+          onPress={() => void snap()}
           scaleTo={0.93}
           style={{
             width: 76,
@@ -197,7 +256,7 @@ function Camera() {
             justifyContent: 'center',
           }}
         >
-          <Txt size={9.5} w={800} color="#c7cec6" center lineHeight={1.2}>
+          <Txt size={9} w={800} color="#c7cec6" center lineHeight={1.2}>
             TYPE{'\n'}INSTEAD
           </Txt>
         </Pressable98>
@@ -278,7 +337,7 @@ function Result() {
         </View>
 
         <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <PhotoPlaceholder size={64} />
+          <ScanPhoto size={64} />
           <View>
             <Txt size={20} w={900} lineHeight={1.1}>
               {scan.result?.dish ?? ''}
@@ -441,7 +500,7 @@ function Unsure() {
         </View>
 
         <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-          <PhotoPlaceholder size={64} />
+          <ScanPhoto size={64} />
           <Txt size={14.5} w={700} lineHeight={1.4} color="#c7cec6" style={{ flex: 1 }}>
             Hard to tell from this angle — pick the closest:
           </Txt>

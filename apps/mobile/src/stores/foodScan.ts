@@ -9,11 +9,13 @@ import { scanService } from '../core';
 interface FoodScanState {
   mode: 'camera' | 'analyzing' | 'result' | 'unsure' | null;
   result: ScanResult | null;
+  // Captured or picked photo shown on the result screens; never persisted.
+  photoUri: string | null;
   portion: Portion;
   removed: boolean[];
   extras: Ingredient[];
   openCamera: () => void;
-  takePhoto: () => Promise<void>;
+  takePhoto: (photoUri?: string) => Promise<void>;
   retake: () => void;
   setPortion: (p: Portion) => void;
   toggleIngredient: (index: number) => void;
@@ -28,12 +30,13 @@ interface FoodScanState {
 export const useFoodScan = create<FoodScanState>((set, get) => ({
   mode: null,
   result: null,
+  photoUri: null,
   portion: 'm',
   removed: [],
   extras: [],
-  openCamera: () => set({ mode: 'camera', portion: 'm', removed: [], extras: [] }),
-  takePhoto: async () => {
-    set({ mode: 'analyzing' });
+  openCamera: () => set({ mode: 'camera', photoUri: null, portion: 'm', removed: [], extras: [] }),
+  takePhoto: async (photoUri) => {
+    set({ mode: 'analyzing', photoUri: photoUri ?? null });
     const result = await scanService.analyze();
     set({
       result,
@@ -43,7 +46,7 @@ export const useFoodScan = create<FoodScanState>((set, get) => ({
       mode: result.confidence === 'high' ? 'result' : 'unsure',
     });
   },
-  retake: () => set({ mode: 'camera' }),
+  retake: () => set({ mode: 'camera', photoUri: null }),
   setPortion: (portion) => set({ portion }),
   toggleIngredient: (index) =>
     set((s) => ({ removed: s.removed.map((r, i) => (i === index ? !r : r)) })),
@@ -69,7 +72,7 @@ export const useFoodScan = create<FoodScanState>((set, get) => ({
       data: { kind: 'meal', kcal: total, label: s.result?.dish, scanned: true },
       title: `Meal logged · ~${total} kcal · scanned`,
     });
-    set({ mode: null, result: null });
+    set({ mode: null, result: null, photoUri: null });
   },
   logMatch: (name, kcal) => {
     logActivity({
@@ -78,7 +81,7 @@ export const useFoodScan = create<FoodScanState>((set, get) => ({
       data: { kind: 'meal', kcal, label: name, scanned: true },
       title: `Meal logged · ~${kcal} kcal · ${name}`,
     });
-    set({ mode: null, result: null });
+    set({ mode: null, result: null, photoUri: null });
   },
-  close: () => set({ mode: null, result: null }),
+  close: () => set({ mode: null, result: null, photoUri: null }),
 }));
