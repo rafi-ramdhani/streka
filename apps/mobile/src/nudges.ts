@@ -33,10 +33,17 @@ async function loadNotifications(): Promise<NotificationsModule | null> {
   return notifications;
 }
 
+// Re-entrancy: changes arriving while a sync is in flight queue one more
+// pass, so the schedule always converges on the latest settings instead of
+// silently dropping the update.
 let applying = false;
+let queued = false;
 
 export async function syncNudgeSchedule(): Promise<void> {
-  if (applying) return;
+  if (applying) {
+    queued = true;
+    return;
+  }
   applying = true;
   try {
     const Notifications = await loadNotifications();
@@ -47,7 +54,12 @@ export async function syncNudgeSchedule(): Promise<void> {
     if (!settings.onboarded || !settings.nudge.enabled) return;
 
     let perm = await Notifications.getPermissionsAsync();
-    if (!perm.granted && perm.canAskAgain) perm = await Notifications.requestPermissionsAsync();
+    if (!perm.granted && perm.canAskAgain) {
+      // Settings may have changed while we awaited; never prompt for a
+      // nudge that is no longer wanted.
+      if (!core.useSettings.getState().nudge.enabled) return;
+      perm = await Notifications.requestPermissionsAsync();
+    }
     if (!perm.granted) return;
 
     const entries = core.useLogs.getState().entries;
@@ -75,6 +87,10 @@ export async function syncNudgeSchedule(): Promise<void> {
     console.warn('streka: nudge scheduling unavailable', err);
   } finally {
     applying = false;
+    if (queued) {
+      queued = false;
+      void syncNudgeSchedule();
+    }
   }
 }
 
