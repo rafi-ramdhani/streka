@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import { dayOf } from './days';
+import type { LogRepo } from './repo';
 import { intentionalDays, isFirstLogOfDay, streak } from './streak';
 import { toastSub } from './toast';
 import type { LogData, LogEntry, LogSource, Settings, TrackerId } from './types';
@@ -10,6 +11,9 @@ export interface CoreOptions {
   storage: StateStorage;
   now?: () => number;
   id?: () => string;
+  // When provided, log entries live in the repo (SQLite on mobile) and the
+  // zustand store is a hydrated in-memory cache with write-through.
+  logRepo?: LogRepo;
 }
 
 export interface SettingsState extends Settings {
@@ -18,8 +22,10 @@ export interface SettingsState extends Settings {
 
 export interface LogsState {
   entries: LogEntry[];
+  hydrated: boolean;
   append: (entry: LogEntry) => void;
   tombstone: (id: string) => void;
+  replaceAll: (entries: LogEntry[]) => void;
 }
 
 export interface SyncState {
@@ -60,19 +66,51 @@ export function createCore(opts: CoreOptions) {
     ),
   );
 
-  const useLogs = create<LogsState>()(
-    persist(
-      (set) => ({
-        entries: [],
-        append: (entry) => set((s) => ({ entries: [...s.entries, entry] })),
-        tombstone: (id) =>
-          set((s) => ({
-            entries: s.entries.map((e) => (e.id === id ? { ...e, deleted: true } : e)),
-          })),
-      }),
-      { name: 'streka-logs', storage },
-    ),
-  );
+  const repo = opts.logRepo;
+  const persistWrite = (write: Promise<void>) => {
+    void write.catch((err) => console.warn('streka: log persistence failed', err));
+  };
+
+  const logsInit = (set: (fn: (s: LogsState) => Partial<LogsState>) => void): LogsState => ({
+    entries: [],
+    hydrated: false,
+    append: (entry) => {
+      set((s) => ({ entries: [...s.entries, entry] }));
+      if (repo) persistWrite(repo.insert(entry, now()));
+    },
+    tombstone: (id) => {
+      set((s) => ({
+        entries: s.entries.map((e) => (e.id === id ? { ...e, deleted: true } : e)),
+      }));
+      if (repo) persistWrite(repo.tombstone(id, now()));
+    },
+    replaceAll: (entries) => {
+      set(() => ({ entries }));
+      if (repo) persistWrite(repo.replaceAll(entries, now()));
+    },
+  });
+
+  const useLogs = repo
+    ? create<LogsState>()(logsInit)
+    : create<LogsState>()(
+        persist(logsInit, {
+          name: 'streka-logs',
+          storage,
+          partialize: (s) => ({ entries: s.entries }) as LogsState,
+        }),
+      );
+
+  // Load persisted entries into the in-memory cache. Without a repo the
+  // persist middleware already rehydrated synchronously; just flip the flag.
+  const hydrate = async () => {
+    if (repo) {
+      await repo.init();
+      const entries = await repo.all();
+      useLogs.setState({ entries, hydrated: true });
+    } else {
+      useLogs.setState({ hydrated: true });
+    }
+  };
 
   // Online state is runtime-only; account membership lives in settings.
   const useSync = create<SyncState>((set) => ({
@@ -113,5 +151,5 @@ export function createCore(opts: CoreOptions) {
     showToast(input.title, toastSub({ account, online, firstLog, streakN }));
   };
 
-  return { useSettings, useLogs, useSync, useToast, showToast, logActivity };
+  return { useSettings, useLogs, useSync, useToast, showToast, logActivity, hydrate };
 }

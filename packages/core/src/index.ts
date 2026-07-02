@@ -5,6 +5,8 @@ export * from './toast';
 export * from './scan';
 export * from './board';
 export * from './weeks';
+export * from './repo';
+export * from './schema';
 export * from './store';
 export * from './units';
 export * from './services';
