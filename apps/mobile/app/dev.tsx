@@ -44,6 +44,16 @@ export default function DevSeed() {
         add('meals', { kind: 'meal', kcal: 320 });
         add('running', { kind: 'run', km: 4.2, time: '23:14', pace: '5:32' });
         add('weight', { kind: 'weight', kg: 72.4 });
+        add('workouts', {
+          kind: 'workout',
+          name: 'Upper body',
+          mins: 45,
+          exercises: [
+            { name: 'Bench press', topSet: '60 kg × 8' },
+            { name: 'Overhead press', topSet: '40 kg × 8' },
+            { name: 'Lat pulldown', topSet: '55 kg × 10' },
+          ],
+        });
       }
     }
     router.replace('/');
