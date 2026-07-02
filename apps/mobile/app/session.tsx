@@ -46,7 +46,7 @@ export default function Session() {
 
         <View style={{ alignItems: 'center', paddingTop: 6, paddingBottom: 2 }}>
           <Txt size={64} w={900} ls={-0.03} tabular lineHeight={1}>
-            {session.active ? fmtElapsed(session.startTs) : '0:00'}
+            {session.active && session.startTs > 0 ? fmtElapsed(session.startTs) : '0:00'}
           </Txt>
           <View
             style={{

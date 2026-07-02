@@ -95,7 +95,7 @@ export const useGpsRun = create<GpsRunState>()(
   },
   elapsedSec: () => {
     const s = get();
-    if (s.mode !== 'live') return 0;
+    if (s.mode !== 'live' || s.startTs <= 0) return 0;
     const pausedExtra = s.paused ? Date.now() - s.pauseStart : 0;
     return Math.max(0, (Date.now() - s.startTs - s.pausedTotal - pausedExtra) / 1000);
   },

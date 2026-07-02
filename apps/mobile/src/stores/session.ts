@@ -57,6 +57,17 @@ export const useSession = create<SessionState>()(
         set({ active: false });
       },
     }),
-    { name: 'streka-session', storage: createJSONStorage(() => kvStorage) },
+    {
+      name: 'streka-session',
+      storage: createJSONStorage(() => kvStorage),
+      // A rehydrated "live" session must have a sane start time; anything
+      // invalid or older than a day is an orphan, not a workout in progress.
+      onRehydrateStorage: () => (state) => {
+        if (!state?.active) return;
+        const stale =
+          !state.startTs || state.startTs <= 0 || Date.now() - state.startTs > 24 * 3_600_000;
+        if (stale) useSession.setState({ active: false, startTs: 0, name: '', sets: [] });
+      },
+    },
   ),
 );

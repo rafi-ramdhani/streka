@@ -71,7 +71,9 @@ export function RouteMap({
     <View style={{ flex: 1, minHeight, borderRadius: 20, overflow: 'hidden' }}>
       <MapView
         ref={ref}
-        style={{ flex: 1 }}
+        // Radius on the map itself too: Android's SurfaceView can render
+        // black when only the parent clips it.
+        style={{ flex: 1, borderRadius: 20 }}
         initialRegion={{ ...last, latitudeDelta: 0.004, longitudeDelta: 0.004 }}
         showsUserLocation={follow}
         showsMyLocationButton={false}
