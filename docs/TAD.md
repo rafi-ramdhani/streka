@@ -87,7 +87,7 @@ All mirror the prototype logic exactly (extracted from the `.dc.html` script blo
 - `useToast`: single toast, 2.8s auto-dismiss.
 - Mobile-only stores (in the mobile app, same style): `useSession` (live workout: startTs, name, sets[], set toggling, finish -> append log), `useGpsRun` (primed, mode: primer/live/paused/summary, timing with pausedTotal), `useFoodScan` (mode: camera/analyzing/result/unsure, portion, removed[]).
 
-Persistence via `zustand/persist` with injected storage: AsyncStorage (mobile), localStorage (web). Everything works offline by construction; sync state only changes indicator copy (product rule 3).
+Persistence: on mobile, all durable state lives in one SQLite database (expo-sqlite) whose schema is defined in core (`schema.ts`) and designed to mirror the future server tables: `log_entries` is an append-only event table keyed by client UUID with `updated_at` (last-write-wins), tombstone `deleted`, and local-only `synced_at` (NULL or stale = outbox row awaiting upload); `kv` holds settings per-key. The store factory takes a `LogRepo` (write-through cache + boot hydration); the merge upsert for future server pulls ships and is tested. On web, `zustand/persist` over localStorage remains. Everything works offline by construction; sync state only changes indicator copy (product rule 3).
 
 ### 4.4 Services (interface + mock)
 
@@ -135,7 +135,7 @@ Onboarding completion sets `onboarded`; picked trackers literally define which t
 | Route map | striped placeholder as designed | map SDK |
 | Camera (scan) | placeholder viewfinder as designed (simulator has no camera); shutter triggers mock analyze | expo-camera + photo upload |
 | Steps/sleep | mock HealthProvider; copy switches on `healthConnected` (`auto` vs `phone only` / `connect Health to auto-fill`) | HealthKit / Health Connect |
-| Nudges | preference stored + per-goal toggles; scheduler mocked | expo-notifications |
+| Nudges | expo-notifications one-shot rescheduled on log/toggle/time change (product rule 6); notification copy is a placeholder pending owner copy (open item 4) | owner copy + Android channel config |
 | Sign-in | mock: Apple/Google/email buttons set `hasAccount` (auth screens are an undesigned open item) | real auth |
 
 ### 5.3 Components
@@ -171,6 +171,7 @@ Findings from the build/verification pass (2026-07-02):
 8. **"vs last week" reads negative mid-week** with honest data (a partial week is compared against a full one). The prototype's static "▴ 1" hides this. Owner may prefer comparing completed weeks.
 9. Verification method: core logic via unit tests (55); web via Testing Library + browser walk; mobile via simulator deep-link walk (a dev-only `/dev` seeding route exists for this). Full tap-through on simulator needs macOS assistive access, which was not granted in this session. Web sub-860px layout is covered by a component test asserting the bottom-sheet modal variant.
 10. Follow-up round (same day): run detail screen (canvas 10a) added and wired to Run-tile long-press, with Delete as tombstone and Edit rendered but inert (no designed behavior); imperial units implemented as display-only conversion (entries always store kg/km; kcal from runs estimated at the canvas's 74 kcal/km ratio). Swim meters and kcal stay metric, since the Units row only specs kg·km / lb·mi.
+11. Third round (same day): mobile persistence moved to SQLite with the sync-ready schema described in 4.3 (account sync itself stays deferred per owner instruction; the outbox and LWW merge are in place and tested). Nudges now schedule real local notifications; the notification copy reuses the coach mark's language and is flagged for owner copy. Settings rows are functional: My board and Weekly rhythm edit live settings by reusing the onboarding pickers as sub-screens (the canvas only designed the rows), and the nudge time opens a picker sheet. Undesigned sub-screen layouts are interpretations, flagged here rather than silently invented.
 
 ## 10. Build order
 
