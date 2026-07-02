@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
 import { scanRange } from '@streka/core';
@@ -526,11 +526,21 @@ function Unsure() {
 export default function Scan() {
   const mode = useFoodScan((s) => s.mode);
   const openCamera = useFoodScan((s) => s.openCamera);
+  const devMode = useLocalSearchParams<{ dev?: string }>().dev;
 
+  // Dev param drives the mock scan for screenshot verification: the mock
+  // alternates high/low confidence, so one shot lands on result, two on unsure.
   useFocusEffect(
     useCallback(() => {
-      if (useFoodScan.getState().mode === null) openCamera();
-    }, [openCamera]),
+      const scan = useFoodScan.getState();
+      if (__DEV__ && devMode) {
+        scan.openCamera();
+        if (devMode === 'result') void scan.takePhoto();
+        if (devMode === 'unsure') void scan.takePhoto().then(() => scan.takePhoto());
+        return;
+      }
+      if (scan.mode === null) openCamera();
+    }, [openCamera, devMode]),
   );
 
   if (mode === 'analyzing') return <Analyzing />;

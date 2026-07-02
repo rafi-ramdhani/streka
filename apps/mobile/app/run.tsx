@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -403,12 +403,29 @@ function Summary() {
 export default function Run() {
   const mode = useGpsRun((s) => s.mode);
   const open = useGpsRun((s) => s.open);
+  const devMode = useLocalSearchParams<{ dev?: string }>().dev;
 
   // Entering the route starts the flow: primer on first use, live otherwise.
+  // The dev param jumps to a specific state for screenshot verification.
   useFocusEffect(
     useCallback(() => {
-      if (useGpsRun.getState().mode === null) open();
-    }, [open]),
+      const run = useGpsRun.getState();
+      if (__DEV__ && devMode) {
+        run.prime();
+        run.begin();
+        if (devMode === 'live') run.addDistance(1.24);
+        if (devMode === 'paused') {
+          run.addDistance(2.84);
+          run.setAutoPaused(true);
+        }
+        if (devMode === 'summary') {
+          run.addDistance(4.21);
+          run.end();
+        }
+        return;
+      }
+      if (run.mode === null) open();
+    }, [open, devMode]),
   );
 
   if (mode === 'primer') return <Primer />;

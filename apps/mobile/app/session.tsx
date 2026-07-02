@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -17,11 +17,15 @@ function fmtElapsed(startTs: number): string {
 export default function Session() {
   const session = useSession();
   const [, setTick] = useState(0);
+  const devStart = useLocalSearchParams<{ dev?: string }>().dev;
 
   useEffect(() => {
+    if (__DEV__ && devStart && !useSession.getState().active) {
+      useSession.getState().start('Upper body');
+    }
     const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
-  }, []);
+  }, [devStart]);
 
   const firstUndone = session.sets.findIndex((s) => !s.done);
 
