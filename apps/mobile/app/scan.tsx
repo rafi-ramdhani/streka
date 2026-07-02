@@ -1,4 +1,4 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
 import { scanRange } from '@streka/core';
@@ -7,6 +7,7 @@ import { Pressable98 } from '../src/components/Pressable98';
 import { SlashMark } from '../src/components/SlashMark';
 import { Txt } from '../src/components/Txt';
 import { useFoodScan } from '../src/stores/foodScan';
+import { goBack } from '../src/lib/nav';
 
 // Striped placeholder (camera viewfinder and food photos are placeholders by
 // design; a real camera lands with the LLM backend, TAD 5.2).
@@ -78,7 +79,7 @@ function Camera() {
         <Pressable98
           onPress={() => {
             scan.close();
-            router.back();
+            goBack();
           }}
           scaleTo={0.95}
           style={{
@@ -184,7 +185,7 @@ function Camera() {
         <Pressable98
           onPress={() => {
             scan.close();
-            router.back();
+            goBack();
           }}
           scaleTo={0.93}
           style={{
@@ -394,7 +395,7 @@ function Result() {
         <Pressable98
           onPress={() => {
             scan.logResult();
-            router.back();
+            goBack();
           }}
           scaleTo={0.97}
           style={{
@@ -452,7 +453,7 @@ function Unsure() {
               key={m.name}
               onPress={() => {
                 scan.logMatch(m.name, m.kcal);
-                router.back();
+                goBack();
               }}
               style={{
                 backgroundColor: colors.tile,
@@ -501,7 +502,7 @@ function Unsure() {
           <Pressable98
             onPress={() => {
               scan.close();
-              router.back();
+              goBack();
             }}
             style={{
               flex: 1,

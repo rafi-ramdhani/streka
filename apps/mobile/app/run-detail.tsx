@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { formatDistance, intentionalDays, kmToMi, streak } from '@streka/core';
@@ -7,6 +7,7 @@ import { Pressable98 } from '../src/components/Pressable98';
 import { SlashMark } from '../src/components/SlashMark';
 import { Txt } from '../src/components/Txt';
 import { colors } from '../src/theme';
+import { goBack } from '../src/lib/nav';
 
 // Run detail (canvas 10a): opens from the Run tile via long-press. The canvas
 // shows the watch-import variant; the source chip adapts to how the run was
@@ -83,7 +84,7 @@ export default function RunDetail() {
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Pressable98 onPress={() => router.back()} hitSlop={12} scaleTo={0.9}>
+            <Pressable98 onPress={() => goBack()} hitSlop={12} scaleTo={0.9}>
               <Svg width={9} height={16} viewBox="0 0 9 16">
                 <Path
                   d="M8 1L1 8l7 7"
@@ -227,7 +228,7 @@ export default function RunDetail() {
         <Pressable98
           onPress={() => {
             tombstone(entry.id);
-            router.back();
+            goBack();
           }}
           style={{
             flex: 1,

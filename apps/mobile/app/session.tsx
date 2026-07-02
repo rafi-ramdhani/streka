@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -6,6 +6,7 @@ import { colors } from '../src/theme';
 import { Pressable98 } from '../src/components/Pressable98';
 import { Txt } from '../src/components/Txt';
 import { useSession } from '../src/stores/session';
+import { goBack } from '../src/lib/nav';
 
 function fmtElapsed(startTs: number): string {
   const el = Math.max(0, Math.floor((Date.now() - startTs) / 1000));
@@ -184,7 +185,7 @@ export default function Session() {
         <Pressable98
           onPress={() => {
             session.discard();
-            router.back();
+            goBack();
           }}
           scaleTo={0.97}
           style={{
@@ -201,7 +202,7 @@ export default function Session() {
         <Pressable98
           onPress={() => {
             session.finish();
-            router.back();
+            goBack();
           }}
           scaleTo={0.97}
           style={{

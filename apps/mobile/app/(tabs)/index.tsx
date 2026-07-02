@@ -29,6 +29,7 @@ import { WeightSheet } from '../../src/sheets/WeightSheet';
 import { WorkoutSheet } from '../../src/sheets/WorkoutSheet';
 import { formatDateLine, shortWeekday } from '../../src/lib/dates';
 import { useOnboarding } from '../../src/stores/onboarding';
+import { useSession } from '../../src/stores/session';
 import { colors } from '../../src/theme';
 
 type SheetName = 'workout' | 'meal' | 'run' | 'weight' | 'swim';
@@ -60,6 +61,7 @@ export default function Board() {
   const entries = useLogs((s) => s.entries);
   const coachPending = useOnboarding((s) => s.coachPending);
   const dismissCoach = useOnboarding((s) => s.dismissCoach);
+  const sessionActive = useSession((s) => s.active);
   // Deep links can open a sheet directly (also handy for verification).
   const params = useLocalSearchParams<{ sheet?: string }>();
   const [sheet, setSheet] = useState<SheetName | null>(null);
@@ -244,7 +246,9 @@ export default function Board() {
                 plus
                 plusTinted
                 border
-                onPress={() => setSheet('workout')}
+                onPress={() =>
+                  sessionActive ? router.push('/session') : setSheet('workout')
+                }
                 footer={
                   <Txt
                     size={11}
@@ -253,7 +257,7 @@ export default function Board() {
                     color={colors.accentOnDark}
                     style={{ marginTop: 12 }}
                   >
-                    TAP TO START
+                    {sessionActive ? 'SESSION LIVE · TAP TO RESUME' : 'TAP TO START'}
                   </Txt>
                 }
               />

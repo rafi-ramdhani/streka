@@ -1,5 +1,7 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { logActivity } from '../core';
+import { kvStorage } from '../db';
 
 // GPS run state machine (Proto logic 88-102, 272-291): primer shows once,
 // live tracking with pause bookkeeping, then a summary that logs on save.
@@ -35,7 +37,11 @@ interface GpsRunState {
   close: () => void;
 }
 
-export const useGpsRun = create<GpsRunState>((set, get) => ({
+// Only the permission-primer flag persists; a live run does not survive a
+// process kill until the background-location module lands (TAD 5.2).
+export const useGpsRun = create<GpsRunState>()(
+  persist(
+    (set, get) => ({
   primed: false,
   mode: null,
   startTs: 0,
@@ -107,4 +113,11 @@ export const useGpsRun = create<GpsRunState>((set, get) => ({
     set({ mode: null });
   },
   close: () => set({ mode: null }),
-}));
+    }),
+    {
+      name: 'streka-gpsrun',
+      storage: createJSONStorage(() => kvStorage),
+      partialize: (s) => ({ primed: s.primed }) as GpsRunState,
+    },
+  ),
+);

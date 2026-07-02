@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -14,6 +14,7 @@ import { Txt } from '../src/components/Txt';
 import { formatDateLine } from '../src/lib/dates';
 import { useLocationRun } from '../src/run/useLocationRun';
 import { useGpsRun } from '../src/stores/gpsRun';
+import { goBack } from '../src/lib/nav';
 
 // Striped placeholder block (map/route renders are placeholders by design).
 function MapPlaceholder({ label, minHeight }: { label: string; minHeight: number }) {
@@ -136,7 +137,7 @@ function Primer() {
           pad={8}
           onPress={() => {
             run.close();
-            router.back();
+            goBack();
           }}
         />
       </View>
@@ -405,7 +406,7 @@ function Summary() {
           label="SAVE RUN"
           onPress={() => {
             run.save();
-            router.back();
+            goBack();
           }}
         />
       </View>
