@@ -1,12 +1,18 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { View } from 'react-native';
 import { BigButton, LinkButton } from '../../src/components/BigButton';
 import { SlashMark } from '../../src/components/SlashMark';
 import { Txt } from '../../src/components/Txt';
-import { enterAsReturning } from '../../src/stores/onboarding';
+import { useScreenPad } from '../../src/lib/screenPad';
 import { colors } from '../../src/theme';
 
 export default function Welcome() {
+  const pad = useScreenPad();
+  // No auth backend exists yet, so sign-in is honestly unavailable instead
+  // of mock-succeeding into a fake synced account (TAD gap 2).
+  const [notice, setNotice] = useState(false);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.accent, paddingHorizontal: 28 }}>
       <View style={{ flex: 1, justifyContent: 'center', gap: 18 }}>
@@ -22,7 +28,13 @@ export default function Welcome() {
           account needed.
         </Txt>
       </View>
-      <View style={{ paddingBottom: 52, gap: 10 }}>
+      <View style={{ paddingBottom: Math.max(pad.bottom, 52), gap: 10 }}>
+        {notice ? (
+          <Txt size={12.5} w={700} center lineHeight={1.4} color="rgba(11,28,16,.75)">
+            Sign-in isn't in this build yet. Accounts arrive with sync, so for now everything
+            stays on this phone.
+          </Txt>
+        ) : null}
         <BigButton
           label="GET STARTED"
           bg={colors.ink}
@@ -32,10 +44,7 @@ export default function Welcome() {
         <LinkButton
           label="I already have an account"
           color="rgba(11,28,16,.6)"
-          onPress={() => {
-            enterAsReturning();
-            router.replace('/');
-          }}
+          onPress={() => setNotice(true)}
         />
       </View>
     </View>

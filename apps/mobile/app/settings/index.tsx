@@ -251,13 +251,16 @@ export default function Settings() {
           sub="Everything as CSV — it's yours"
           right={<Chevron />}
           onPress={exportCsv}
+          last={!settings.hasAccount}
         />
-        <Row
-          title="Sign out"
-          sub="Your data stays on this phone and in your account"
-          onPress={() => settings.set({ hasAccount: false })}
-          last
-        />
+        {settings.hasAccount ? (
+          <Row
+            title="Sign out"
+            sub="Your data stays on this phone and in your account"
+            onPress={() => settings.set({ hasAccount: false })}
+            last
+          />
+        ) : null}
       </Group>
 
       <Txt size={10.5} w={600} color="#4a544a" center style={{ paddingTop: 2, paddingBottom: 10 }}>

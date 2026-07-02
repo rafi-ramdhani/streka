@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { View } from 'react-native';
 import { BigButton, LinkButton } from '../../src/components/BigButton';
 import { Check } from '../../src/components/Check';
@@ -14,8 +15,12 @@ const BENEFITS = [
 ];
 
 export default function Account() {
-  const finish = (hasAccount: boolean) => {
-    enterApp(hasAccount);
+  // Accounts need the sync backend, which is deferred; the sign-in buttons
+  // stay per design but are honestly unavailable rather than mock-creating
+  // a fake synced account (TAD gap 2). Local-only is the one real path.
+  const [notice, setNotice] = useState(false);
+  const finish = () => {
+    enterApp(false);
     router.replace('/');
   };
 
@@ -25,10 +30,7 @@ export default function Account() {
       headline={"Don't lose the\nstreak you build"}
       sub="A free account backs everything up and syncs to the web app. Without one, your data lives only on this phone."
       footer={
-        <LinkButton
-          label="Not now — keep everything on this phone"
-          onPress={() => finish(false)}
-        />
+        <LinkButton label="Not now — keep everything on this phone" onPress={finish} />
       }
     >
       <View style={{ backgroundColor: colors.tile, borderRadius: 20, padding: 18, gap: 11 }}>
@@ -48,7 +50,7 @@ export default function Account() {
           color={colors.ink}
           pad={15}
           size={13.5}
-          onPress={() => finish(true)}
+          onPress={() => setNotice(true)}
         />
         <BigButton
           label="Continue with Google"
@@ -56,7 +58,7 @@ export default function Account() {
           color={colors.white}
           pad={15}
           size={13.5}
-          onPress={() => finish(true)}
+          onPress={() => setNotice(true)}
         />
         <BigButton
           label="Use email"
@@ -64,8 +66,14 @@ export default function Account() {
           color={colors.white}
           pad={15}
           size={13.5}
-          onPress={() => finish(true)}
+          onPress={() => setNotice(true)}
         />
+        {notice ? (
+          <Txt size={12} w={700} center lineHeight={1.4} color={colors.mutedDark}>
+            Sign-in isn't in this build yet. Accounts arrive with sync, so for now everything
+            stays on this phone.
+          </Txt>
+        ) : null}
       </View>
     </ObFrame>
   );

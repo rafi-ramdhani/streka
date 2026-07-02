@@ -137,7 +137,7 @@ Onboarding completion sets `onboarded`; picked trackers literally define which t
 | Camera (scan) | expo-camera live viewfinder + shutter capture, expo-image-picker for FROM PHOTOS; captured photo shows on the result screens; placeholder fallback when no permission or hardware; analyze stays mocked | LLM backend for the actual estimate |
 | Steps/sleep | `useHealthToday()`: real pedometer steps on iOS (expo-sensors, permission asked when Health is connected); Android and sleep render an honest dash until Health Connect / HealthKit land in a dev build; demo dataset shows its designed numbers | HealthKit / Health Connect |
 | Nudges | expo-notifications one-shot rescheduled on log/toggle/time change (product rule 6); notification copy is a placeholder pending owner copy (open item 4) | owner copy + Android channel config |
-| Sign-in | mock: Apple/Google/email buttons set `hasAccount` (auth screens are an undesigned open item) | real auth |
+| Sign-in | honestly unavailable: the designed buttons show a "accounts arrive with sync" notice; `hasAccount` can only be true on the dev-seeded demo dataset | real auth |
 
 ### 5.3 Components
 
@@ -160,7 +160,7 @@ Static page (plain HTML + CSS, no framework): green hero with phone-framed day-1
 ## 9. Gaps and interim decisions (flagged, not silently invented)
 
 1. **Settings entry point**: no entry is designed on the native Board. Interim: the Settings screen is fully built and reachable only via its route (`/settings` deep link, usable from dev tools); no visible entry is added to the pixel-final header without an owner decision.
-2. **Auth screens** (open item 1): mock sign-in only; buttons work, no forms.
+2. **Auth screens** (open item 1): no auth backend exists, so sign-in is honestly unavailable. The designed buttons (welcome "I already have an account", account step Apple/Google/email) show a notice that accounts arrive with sync instead of mock-succeeding into a fake synced state; local-only is the one real path, and Settings hides Sign out without an account. The returning-account demo state remains reachable via the dev-only `/dev?state=demo` route for verification.
 3. **Android back gesture** (open item 2): dismiss sheet -> back through tabs -> exit, implemented via router; adaptive icon deferred.
 4. **Notification layout** (open item 4) and **LLM backend** (open item 5): interfaces only, as above.
 5. Prototype's unrealistic GPS demo speed is ignored; real elapsed-time/coordinate math is used.
