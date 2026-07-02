@@ -407,6 +407,10 @@ export default function Run() {
       if (__DEV__ && devMode) {
         run.prime();
         run.begin();
+        // A small synthetic route so the map renders in dev verification.
+        for (let i = 0; i < 24; i += 1) {
+          run.addPoint(37.7749 + i * 0.0004, -122.4194 + Math.sin(i / 4) * 0.0006);
+        }
         if (devMode === 'live') run.addDistance(1.24);
         if (devMode === 'paused') {
           run.addDistance(2.84);
