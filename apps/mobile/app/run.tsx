@@ -1,3 +1,4 @@
+import { useKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -9,42 +10,13 @@ import { colors } from '../src/theme';
 import { BigButton, LinkButton } from '../src/components/BigButton';
 import { Check } from '../src/components/Check';
 import { Pressable98 } from '../src/components/Pressable98';
+import { RouteMap } from '../src/components/RouteMap';
 import { SlashMark } from '../src/components/SlashMark';
 import { Txt } from '../src/components/Txt';
 import { formatDateLine } from '../src/lib/dates';
 import { useLocationRun } from '../src/run/useLocationRun';
 import { useGpsRun } from '../src/stores/gpsRun';
 import { goBack } from '../src/lib/nav';
-
-// Striped placeholder block (map/route renders are placeholders by design).
-function MapPlaceholder({ label, minHeight }: { label: string; minHeight: number }) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        minHeight,
-        borderRadius: 20,
-        overflow: 'hidden',
-        backgroundColor: colors.tile,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <View
-        style={{
-          backgroundColor: 'rgba(19,23,18,.85)',
-          borderRadius: 8,
-          paddingVertical: 8,
-          paddingHorizontal: 14,
-        }}
-      >
-        <Txt size={11} w={600} color={colors.mutedDark} ls={0.06} style={{ fontFamily: 'Menlo' }}>
-          {label}
-        </Txt>
-      </View>
-    </View>
-  );
-}
 
 const PRIMER_BULLETS: { plain: string; bold: string; tail: string }[] = [
   {
@@ -172,6 +144,9 @@ function Live() {
   const units = useSettings((s) => s.units);
   const [, setTick] = useState(0);
   useLocationRun(run.mode === 'live');
+  // Foreground-only tracking until the background-location module lands
+  // (TAD 5.2): keep the screen awake so a live run is not lost to sleep.
+  useKeepAwake();
 
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 1000);
@@ -254,7 +229,12 @@ function Live() {
         </View>
 
         <View style={{ flex: 1, opacity: statsOpacity }}>
-          <MapPlaceholder label="live route · follows you" minHeight={100} />
+          <RouteMap
+            points={run.points}
+            follow
+            minHeight={100}
+            fallbackLabel="live route · follows you"
+          />
         </View>
       </View>
 
@@ -383,7 +363,7 @@ function Summary() {
             </Txt>
           </View>
         </View>
-        <MapPlaceholder label="your route" minHeight={140} />
+        <RouteMap points={run.points} minHeight={140} fallbackLabel="your route" />
         <View
           style={{
             backgroundColor: 'rgba(23,194,95,.12)',

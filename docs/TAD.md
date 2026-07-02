@@ -132,7 +132,7 @@ Onboarding completion sets `onboarded`; picked trackers literally define which t
 | Capability | v1 implementation | Real thing (deferred) |
 |---|---|---|
 | GPS run | expo-location foreground watch; distance from coordinates; auto-pause on no movement; press-and-hold END (prototype simplifies to tap; handoff says production must hold) | background-location module + Play policy review |
-| Route map | striped placeholder as designed | map SDK |
+| Route map | react-native-maps: live polyline follows the run; summary and run detail fit the recorded route; routes stored as [lat,lng] pairs in the run entry payload (decimated to ~500 points), so they replicate through log_entries; quick logs keep the designed placeholder | dark map styling on Android (Google requires a custom style JSON) |
 | Camera (scan) | placeholder viewfinder as designed (simulator has no camera); shutter triggers mock analyze | expo-camera + photo upload |
 | Steps/sleep | mock HealthProvider; copy switches on `healthConnected` (`auto` vs `phone only` / `connect Health to auto-fill`) | HealthKit / Health Connect |
 | Nudges | expo-notifications one-shot rescheduled on log/toggle/time change (product rule 6); notification copy is a placeholder pending owner copy (open item 4) | owner copy + Android channel config |

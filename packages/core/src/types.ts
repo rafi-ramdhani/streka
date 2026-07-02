@@ -28,6 +28,10 @@ export interface RunData {
   km: number;
   time?: string;
   pace?: string;
+  // GPS route as [lat, lng] pairs, decimated on save. Lives in the entry
+  // payload, so it replicates through the same log_entries table (and per
+  // the primer copy, never leaves the phone except through account sync).
+  route?: [number, number][];
 }
 export interface SwimData {
   kind: 'swim';

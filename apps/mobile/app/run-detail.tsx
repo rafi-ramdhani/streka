@@ -4,6 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { formatDistance, intentionalDays, kmToMi, streak } from '@streka/core';
 import { useLogs, useSettings } from '../src/core';
 import { Pressable98 } from '../src/components/Pressable98';
+import { RouteMap } from '../src/components/RouteMap';
 import { SlashMark } from '../src/components/SlashMark';
 import { Txt } from '../src/components/Txt';
 import { colors } from '../src/theme';
@@ -11,7 +12,8 @@ import { goBack } from '../src/lib/nav';
 
 // Run detail (canvas 10a): opens from the Run tile via long-press. The canvas
 // shows the watch-import variant; the source chip adapts to how the run was
-// logged. Map/route stays a placeholder until the map SDK lands.
+// logged. Runs with a recorded route render the real map; quick logs keep
+// the designed placeholder.
 
 function fmtClock(ts: number): string {
   const d = new Date(ts);
@@ -149,35 +151,11 @@ export default function RunDetail() {
           {card(String(kcal), 'kcal')}
         </View>
 
-        <View
-          style={{
-            flex: 1,
-            minHeight: 180,
-            borderRadius: 20,
-            backgroundColor: colors.tile,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: 'rgba(19,23,18,.85)',
-              borderRadius: 8,
-              paddingVertical: 8,
-              paddingHorizontal: 14,
-            }}
-          >
-            <Txt
-              size={11}
-              w={600}
-              color={colors.mutedDark}
-              ls={0.06}
-              style={{ fontFamily: 'Menlo' }}
-            >
-              {entry.source === 'gps' ? 'route map · GPS from phone' : 'route map'}
-            </Txt>
-          </View>
-        </View>
+        <RouteMap
+          points={run.route ?? []}
+          minHeight={180}
+          fallbackLabel={entry.source === 'gps' ? 'route map · GPS from phone' : 'route map'}
+        />
 
         <View
           style={{

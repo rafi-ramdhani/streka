@@ -46,6 +46,7 @@ export function useLocationRun(active: boolean) {
             run.setAutoPaused(false);
           }
           if (last.current) run.addDistance(haversineKm(last.current, loc.coords));
+          run.addPoint(loc.coords.latitude, loc.coords.longitude);
           last.current = loc.coords;
         },
       );

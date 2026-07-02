@@ -21,6 +21,7 @@ interface GpsRunState {
   paused: boolean;
   autoPaused: boolean;
   distanceKm: number;
+  points: [number, number][];
   sumKm: number;
   sumSec: number;
   sumTime: string;
@@ -31,6 +32,7 @@ interface GpsRunState {
   togglePause: () => void;
   setAutoPaused: (paused: boolean) => void;
   addDistance: (km: number) => void;
+  addPoint: (lat: number, lng: number) => void;
   elapsedSec: () => number;
   end: () => void;
   save: () => void;
@@ -50,6 +52,7 @@ export const useGpsRun = create<GpsRunState>()(
   paused: false,
   autoPaused: false,
   distanceKm: 0,
+  points: [],
   sumKm: 0,
   sumSec: 0,
   sumTime: '',
@@ -64,6 +67,7 @@ export const useGpsRun = create<GpsRunState>()(
       paused: false,
       autoPaused: false,
       distanceKm: 0,
+      points: [],
     }),
   togglePause: () => {
     const s = get();
@@ -82,6 +86,12 @@ export const useGpsRun = create<GpsRunState>()(
   },
   addDistance: (km) => {
     if (!get().paused) set((s) => ({ distanceKm: s.distanceKm + km }));
+  },
+  addPoint: (lat, lng) => {
+    if (get().paused) return;
+    // ~1 m precision keeps the payload compact.
+    const pt: [number, number] = [Number(lat.toFixed(5)), Number(lng.toFixed(5))];
+    set((s) => ({ points: [...s.points, pt] }));
   },
   elapsedSec: () => {
     const s = get();
@@ -104,10 +114,19 @@ export const useGpsRun = create<GpsRunState>()(
   },
   save: () => {
     const s = get();
+    // Decimate long routes; ~500 points is plenty for a route render.
+    const step = Math.max(1, Math.ceil(s.points.length / 500));
+    const route = s.points.filter((_, i) => i % step === 0 || i === s.points.length - 1);
     logActivity({
       tracker: 'running',
       source: 'gps',
-      data: { kind: 'run', km: s.sumKm, time: s.sumTime, pace: s.sumPace },
+      data: {
+        kind: 'run',
+        km: s.sumKm,
+        time: s.sumTime,
+        pace: s.sumPace,
+        ...(route.length > 1 ? { route } : {}),
+      },
       title: `Run logged · ${s.sumKm.toFixed(2)} km`,
     });
     set({ mode: null });
