@@ -164,6 +164,13 @@ Static page (plain HTML + CSS, no framework): green hero with phone-framed day-1
 4. **Notification layout** (open item 4) and **LLM backend** (open item 5): interfaces only, as above.
 5. Prototype's unrealistic GPS demo speed is ignored; real elapsed-time/coordinate math is used.
 
+Findings from the build/verification pass (2026-07-02):
+
+6. **Consistency card conflict**: the README lists a Consistency dot grid under mobile Trends, but its only mobile design lives in explorations turn 2 (rejected history, "do not implement"). The primary prototype's Trends has three cards and screenshot 17 confirms it. Implemented: three cards on mobile; the web app keeps its Consistency card (it is in the web prototype). Owner to confirm.
+7. **Derived numbers vs static demo numbers**: the prototypes' demo values are internally inconsistent (a 12-day streak alongside a 5/7 week with two off days; "started at 76 kg" outside the 30-day window). All our surfaces derive from the seeded log history instead, so some displayed values differ from the static captures (active days, week-delta line, best step day, weight start). Rule follows product rule "no fake data".
+8. **"vs last week" reads negative mid-week** with honest data (a partial week is compared against a full one). The prototype's static "▴ 1" hides this. Owner may prefer comparing completed weeks.
+9. Verification method: core logic via 50 unit tests; web via Testing Library + browser walk; mobile via simulator deep-link walk (a dev-only `/dev` seeding route exists for this). Full tap-through on simulator needs macOS assistive access, which was not granted in this session. Web sub-860px layout is implemented per spec but was not visually captured (window resize blocked); logic is covered by tests.
+
 ## 10. Build order
 
 M1 scaffold + tokens + core (tested) -> M2 mobile app -> M3 web app -> M4 landing -> M5 verification pass against screenshots. Each milestone commits on `staging`.
