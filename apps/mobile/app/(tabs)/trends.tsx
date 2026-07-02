@@ -4,14 +4,17 @@ import Svg, { Circle, Polyline } from 'react-native-svg';
 import {
   addDays,
   dayOf,
+  formatDistance,
+  formatWeight,
   intentionalDays,
+  kgToLb,
   monthWeekCounts,
   weekDayCounts,
   weekStartOf,
   weeklyActiveDays,
   type LogEntry,
 } from '@streka/core';
-import { healthFor, useLogs } from '../../src/core';
+import { healthFor, useLogs, useSettings } from '../../src/core';
 import { Pressable98 } from '../../src/components/Pressable98';
 import { Txt } from '../../src/components/Txt';
 import { colors } from '../../src/theme';
@@ -33,6 +36,8 @@ function barHeight(count: number): number {
 
 export default function Trends() {
   const entries = useLogs((s) => s.entries);
+  const units = useSettings((s) => s.units);
+  const imperial = units === 'imperial';
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const today = dayOf(Date.now());
   const weekStart = weekStartOf(today);
@@ -262,8 +267,11 @@ export default function Trends() {
               </Txt>
               {weightDelta30 !== null ? (
                 <Txt size={12} w={800} color={colors.accentOnDark}>
-                  {weightDelta30 <= 0 ? '▾' : '▴'} {Math.abs(weightDelta30).toFixed(1)} kg in 30
-                  days
+                  {weightDelta30 <= 0 ? '▾' : '▴'}{' '}
+                  {(imperial ? kgToLb(Math.abs(weightDelta30)) : Math.abs(weightDelta30)).toFixed(
+                    1,
+                  )}{' '}
+                  {imperial ? 'lb' : 'kg'} in 30 days
                 </Txt>
               ) : null}
             </View>
@@ -271,10 +279,13 @@ export default function Trends() {
               style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 2 }}
             >
               <Txt size={28} w={900}>
-                {weights[weights.length - 1]!.data.kg.toFixed(1)}
+                {(imperial
+                  ? kgToLb(weights[weights.length - 1]!.data.kg)
+                  : weights[weights.length - 1]!.data.kg
+                ).toFixed(1)}
               </Txt>
               <Txt size={13} w={700} color={colors.mutedDark}>
-                kg
+                {imperial ? 'lb' : 'kg'}
               </Txt>
             </View>
             <Svg
@@ -317,7 +328,7 @@ export default function Trends() {
               style={{ marginTop: 12 }}
             >
               {weights.length === 1
-                ? `One entry so far (${weights[0]!.data.kg.toFixed(1)} kg). Log it again in a few days and the trend line starts here.`
+                ? `One entry so far (${formatWeight(weights[0]!.data.kg, units)}). Log it again in a few days and the trend line starts here.`
                 : 'Log your weight and the trend line starts here.'}
             </Txt>
           </>
@@ -340,7 +351,7 @@ export default function Trends() {
             </View>
             <View style={{ flex: 1 }}>
               <Txt size={17} w={900}>
-                {bests.longestRun > 0 ? `${bests.longestRun.toFixed(1)} km` : '—'}
+                {bests.longestRun > 0 ? formatDistance(bests.longestRun, units) : '—'}
               </Txt>
               <Txt size={10.5} w={600} color={colors.mutedDark}>
                 longest run

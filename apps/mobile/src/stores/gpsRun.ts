@@ -20,6 +20,7 @@ interface GpsRunState {
   autoPaused: boolean;
   distanceKm: number;
   sumKm: number;
+  sumSec: number;
   sumTime: string;
   sumPace: string;
   open: () => void;
@@ -44,6 +45,7 @@ export const useGpsRun = create<GpsRunState>((set, get) => ({
   autoPaused: false,
   distanceKm: 0,
   sumKm: 0,
+  sumSec: 0,
   sumTime: '',
   sumPace: '',
   open: () => set({ mode: get().primed ? 'live' : 'primer' }),
@@ -89,6 +91,7 @@ export const useGpsRun = create<GpsRunState>((set, get) => ({
     set({
       mode: 'summary',
       sumKm: km,
+      sumSec: el,
       sumTime: fmtSec(el),
       sumPace: paceSec > 0 ? fmtSec(paceSec) : '—',
     });

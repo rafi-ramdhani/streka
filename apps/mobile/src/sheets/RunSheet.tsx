@@ -1,19 +1,21 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
-import { logActivity } from '../core';
+import { formatDistance } from '@streka/core';
+import { logActivity, useSettings } from '../core';
 import { colors } from '../theme';
 import { Pressable98 } from '../components/Pressable98';
 import { Txt } from '../components/Txt';
 import { SheetRow } from './SheetRow';
 
 const OPTIONS = [
-  { label: 'Quick 2K', meta: '2.0 km', km: 2.0 },
-  { label: 'Easy 5K', meta: '5.0 km', km: 5.0 },
-  { label: 'Same as last time', meta: '4.2 km', km: 4.2 },
+  { label: 'Quick 2K', km: 2.0 },
+  { label: 'Easy 5K', km: 5.0 },
+  { label: 'Same as last time', km: 4.2 },
 ];
 
 // Proto:670-684. GPS run is the primary action; quick logs are manual.
 export function RunSheet({ onClose }: { onClose: () => void }) {
+  const units = useSettings((s) => s.units);
   return (
     <>
       <View style={{ gap: 8 }}>
@@ -43,14 +45,14 @@ export function RunSheet({ onClose }: { onClose: () => void }) {
           <SheetRow
             key={o.label}
             label={o.label}
-            meta={o.meta}
+            meta={formatDistance(o.km, units)}
             onPress={() => {
               onClose();
               logActivity({
                 tracker: 'running',
                 source: 'manual',
                 data: { kind: 'run', km: o.km },
-                title: `Run logged · ${o.km.toFixed(1)} km`,
+                title: `Run logged · ${formatDistance(o.km, units)}`,
               });
             }}
           />

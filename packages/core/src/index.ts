@@ -6,5 +6,6 @@ export * from './scan';
 export * from './board';
 export * from './weeks';
 export * from './store';
+export * from './units';
 export * from './services';
 export * from './seed';

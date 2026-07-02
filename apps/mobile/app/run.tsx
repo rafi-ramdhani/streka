@@ -3,6 +3,8 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
+import { kmToMi } from '@streka/core';
+import { useSettings } from '../src/core';
 import { colors } from '../src/theme';
 import { BigButton, LinkButton } from '../src/components/BigButton';
 import { Check } from '../src/components/Check';
@@ -166,6 +168,7 @@ function StatCard({ value, label }: { value: string; label: string }) {
 
 function Live() {
   const run = useGpsRun();
+  const units = useSettings((s) => s.units);
   const [, setTick] = useState(0);
   useLocationRun(run.mode === 'live');
 
@@ -174,8 +177,10 @@ function Live() {
     return () => clearInterval(t);
   }, []);
 
+  const imperial = units === 'imperial';
+  const dist = imperial ? kmToMi(run.distanceKm) : run.distanceKm;
   const el = run.elapsedSec();
-  const paceSec = run.distanceKm > 0.05 ? el / run.distanceKm : 0;
+  const paceSec = dist > 0.05 ? el / dist : 0;
   const pace =
     run.paused || paceSec <= 0
       ? '—'
@@ -233,17 +238,17 @@ function Live() {
             }}
           >
             <Txt size={88} w={900} ls={-0.04} lineHeight={1} tabular>
-              {run.distanceKm.toFixed(2)}
+              {dist.toFixed(2)}
             </Txt>
             <Txt size={20} w={800} color={colors.mutedDark}>
-              km
+              {imperial ? 'mi' : 'km'}
             </Txt>
           </View>
         </View>
 
         <View style={{ flexDirection: 'row', gap: 10, opacity: statsOpacity }}>
           <StatCard value={time} label="time" />
-          <StatCard value={pace} label="pace / km" />
+          <StatCard value={pace} label={imperial ? 'pace / mi' : 'pace / km'} />
           <StatCard value={run.paused ? '121' : '148'} label="bpm · watch" />
         </View>
 
@@ -314,6 +319,14 @@ function Live() {
 
 function Summary() {
   const run = useGpsRun();
+  const units = useSettings((s) => s.units);
+  const imperial = units === 'imperial';
+  const dist = imperial ? kmToMi(run.sumKm) : run.sumKm;
+  const paceSec = dist > 0 ? run.sumSec / dist : 0;
+  const pace =
+    paceSec > 0
+      ? `${Math.floor(paceSec / 60)}:${String(Math.floor(paceSec % 60)).padStart(2, '0')}`
+      : '—';
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
       <View style={{ flex: 1, paddingTop: 64, paddingHorizontal: 24, gap: 16 }}>
@@ -328,10 +341,10 @@ function Summary() {
             style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10, marginTop: 4 }}
           >
             <Txt size={64} w={900} ls={-0.03} lineHeight={1}>
-              {run.sumKm.toFixed(2)}
+              {dist.toFixed(2)}
             </Txt>
             <Txt size={18} w={800} color={colors.mutedDark}>
-              km
+              {imperial ? 'mi' : 'km'}
             </Txt>
           </View>
         </View>
@@ -362,10 +375,10 @@ function Summary() {
             }}
           >
             <Txt size={19} w={900} tabular>
-              {run.sumPace}
+              {pace}
             </Txt>
             <Txt size={10.5} w={700} color={colors.mutedDark}>
-              min / km
+              {imperial ? 'min / mi' : 'min / km'}
             </Txt>
           </View>
         </View>

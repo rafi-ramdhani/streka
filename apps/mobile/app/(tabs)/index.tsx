@@ -1,9 +1,12 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
 import {
   dayOf,
+  formatDistance,
+  formatWeight,
   intentionalDays,
+  kgToLb,
   prevDay,
   streak,
   todayBoard,
@@ -92,13 +95,27 @@ export default function Board() {
     return best?.data.kind === 'weight' ? best.data.kg : undefined;
   }, [entries, today]);
 
+  const weekDiffKg =
+    board.weightKg !== undefined && weekAgoWeight !== undefined
+      ? board.weightKg - weekAgoWeight
+      : undefined;
   const weightSub = board.weightLoggedToday
     ? 'updated just now'
     : board.weightKg === undefined
       ? 'tap + to set a baseline'
-      : weekAgoWeight !== undefined
-        ? `${board.weightKg <= weekAgoWeight ? '▾' : '▴'} ${Math.abs(board.weightKg - weekAgoWeight).toFixed(1)} this week`
+      : weekDiffKg !== undefined
+        ? `${weekDiffKg <= 0 ? '▾' : '▴'} ${(settings.units === 'imperial' ? kgToLb(Math.abs(weekDiffKg)) : Math.abs(weekDiffKg)).toFixed(1)} this week`
         : 'baseline set';
+
+  // Long-press on the Run tile opens today's run detail (footer hint promise).
+  const todayRun = useMemo(() => {
+    let best: LogEntry | undefined;
+    for (const e of entries) {
+      if (e.deleted || e.day !== today || e.data.kind !== 'run') continue;
+      if (!best || e.ts > best.ts) best = e;
+    }
+    return best;
+  }, [entries, today]);
 
   const progressBar = (pct: number, width_: number, h: number) => (
     <View
@@ -267,18 +284,23 @@ export default function Board() {
             <Tile
               width={half}
               label="Run"
-              title={board.runKm !== undefined ? `${board.runKm} km` : '—'}
+              title={
+                board.runKm !== undefined ? formatDistance(board.runKm, settings.units) : '—'
+              }
               sub={
                 board.runKm !== undefined
                   ? 'logged today'
                   : fresh
                     ? 'nothing yet'
                     : lastRun?.data.kind === 'run'
-                      ? `last: ${shortWeekday(lastRun.day)} · ${lastRun.data.km} km`
+                      ? `last: ${shortWeekday(lastRun.day)} · ${formatDistance(lastRun.data.km, settings.units)}`
                       : 'nothing yet'
               }
               plus
               onPress={() => setSheet('run')}
+              onLongPress={
+                todayRun ? () => router.push(`/run-detail?id=${todayRun.id}`) : undefined
+              }
             />
           ) : null}
 
@@ -286,7 +308,7 @@ export default function Board() {
             <Tile
               width={half}
               label="Weight"
-              title={`${(board.weightKg ?? 72.4).toFixed(1)} kg`}
+              title={formatWeight(board.weightKg ?? 72.4, settings.units)}
               sub={weightSub}
               subColor={board.weightLoggedToday ? colors.accentOnDark : colors.mutedDark}
               plus
@@ -383,7 +405,11 @@ export default function Board() {
         {sheet === 'run' ? <RunSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'swim' ? <SwimSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'weight' ? (
-          <WeightSheet initial={board.weightKg ?? 72.4} onClose={() => setSheet(null)} />
+          <WeightSheet
+            initial={board.weightKg ?? 72.4}
+            units={settings.units}
+            onClose={() => setSheet(null)}
+          />
         ) : null}
       </LogSheet>
 

@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import {
   dayOf,
+  formatWeight,
+  kgToLb,
   weekStartOf,
   weeklyActiveDays,
   type LogEntry,
@@ -81,10 +83,12 @@ export default function Goals() {
       ? ((startKg - nowKg) / (startKg - TARGET_KG)) * 100
       : 0;
 
+  const startLabel =
+    startKg !== undefined ? formatWeight(startKg, settings.units) : undefined;
   const paceLine = useMemo(() => {
     if (startKg === undefined || nowKg === undefined || weights.length < 2)
-      return startKg !== undefined
-        ? `Started at ${startKg.toFixed(0)} kg · log again to see a pace`
+      return startLabel !== undefined
+        ? `Started at ${startLabel} · log again to see a pace`
         : 'Log your weight to start this goal';
     const first = weights[0]!;
     const last = weights[weights.length - 1]!;
@@ -93,13 +97,13 @@ export default function Goals() {
       (Date.parse(last.day) - Date.parse(first.day)) / 86_400_000,
     );
     const perDay = (first.data.kg - last.data.kg) / daysSpan;
-    if (perDay <= 0) return `Started at ${startKg.toFixed(0)} kg`;
+    if (perDay <= 0) return `Started at ${startLabel}`;
     const daysToGo = (nowKg - TARGET_KG) / perDay;
     const eta = new Date(Date.now() + daysToGo * 86_400_000);
     const part = eta.getDate() <= 10 ? 'early' : eta.getDate() <= 20 ? 'mid' : 'late';
     const month = eta.toLocaleDateString('en-US', { month: 'short' });
-    return `Started at ${startKg.toFixed(0)} kg · on pace for ${part} ${month}`;
-  }, [weights, startKg, nowKg]);
+    return `Started at ${startLabel} · on pace for ${part} ${month}`;
+  }, [weights, startKg, nowKg, startLabel]);
 
   return (
     <ScrollView
@@ -174,10 +178,12 @@ export default function Goals() {
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Txt size={16} w={900}>
-            Reach 70 kg
+            Reach {settings.units === 'imperial' ? `${kgToLb(TARGET_KG).toFixed(0)} lb` : '70 kg'}
           </Txt>
           <Txt size={13} w={900} color={colors.mutedDark}>
-            {nowKg !== undefined ? `${nowKg.toFixed(1)} now` : '—'}
+            {nowKg !== undefined
+              ? `${(settings.units === 'imperial' ? kgToLb(nowKg) : nowKg).toFixed(1)} now`
+              : '—'}
           </Txt>
         </View>
         <Bar pct={weightPct} />
