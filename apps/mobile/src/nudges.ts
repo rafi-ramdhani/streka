@@ -1,4 +1,5 @@
-import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { dayOf, intentionalDays, isFirstLogOfDay, streak } from '@streka/core';
 import { core } from './core';
 
@@ -8,12 +9,39 @@ import { core } from './core';
 // setting change. Notification copy is a placeholder pending owner copy
 // (handoff open item 4); it reuses the coach mark's language.
 
+type NotificationsModule = typeof import('expo-notifications');
+
+// Expo Go on Android ships without expo-notifications since SDK 53; even
+// importing the module there can take down the app. Load it lazily and
+// degrade to a no-op until a development build exists.
+let notifications: NotificationsModule | null | undefined;
+
+async function loadNotifications(): Promise<NotificationsModule | null> {
+  if (notifications !== undefined) return notifications;
+  const inExpoGo = Constants.executionEnvironment === 'storeClient';
+  if (Platform.OS === 'android' && inExpoGo) {
+    console.warn('streka: nudges need a development build on Android (Expo Go limitation)');
+    notifications = null;
+    return null;
+  }
+  try {
+    notifications = await import('expo-notifications');
+  } catch (err) {
+    console.warn('streka: notifications unavailable', err);
+    notifications = null;
+  }
+  return notifications;
+}
+
 let applying = false;
 
 export async function syncNudgeSchedule(): Promise<void> {
   if (applying) return;
   applying = true;
   try {
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
+
     const settings = core.useSettings.getState();
     await Notifications.cancelAllScheduledNotificationsAsync();
     if (!settings.onboarded || !settings.nudge.enabled) return;
@@ -43,7 +71,7 @@ export async function syncNudgeSchedule(): Promise<void> {
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: next },
     });
   } catch (err) {
-    // Expo Go has partial notification support; never let scheduling break the app.
+    // Never let scheduling break the app.
     console.warn('streka: nudge scheduling unavailable', err);
   } finally {
     applying = false;
