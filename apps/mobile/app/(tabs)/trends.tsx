@@ -3,6 +3,7 @@ import { ScrollView, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import {
   addDays,
+  bestLift,
   dayOf,
   formatDistance,
   formatWeight,
@@ -87,7 +88,7 @@ export default function Trends() {
       if (e.data.kind === 'workout') anyWorkout = true;
     }
     bestSteps = Math.max(bestSteps, healthFor(false).todaySteps());
-    return { longestRun, bestSteps, anyWorkout };
+    return { longestRun, bestSteps, anyWorkout, lift: bestLift(entries, monthStart) };
   }, [entries, today]);
 
   const segBtn = (label: string, value: 'week' | 'month') => {
@@ -343,10 +344,10 @@ export default function Trends() {
           <View style={{ flexDirection: 'row', gap: 20, marginTop: 12 }}>
             <View style={{ flex: 1 }}>
               <Txt size={17} w={900}>
-                {bests.anyWorkout ? '62.5 kg' : '—'}
+                {bests.lift ? formatWeight(bests.lift.kg, units) : '—'}
               </Txt>
               <Txt size={10.5} w={600} color={colors.mutedDark}>
-                bench press
+                {bests.lift ? bests.lift.exercise.toLowerCase() : 'top lift'}
               </Txt>
             </View>
             <View style={{ flex: 1 }}>

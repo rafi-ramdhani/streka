@@ -2,9 +2,11 @@ import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { lastTopSet } from '@streka/core';
 import { colors } from '../src/theme';
 import { Pressable98 } from '../src/components/Pressable98';
 import { Txt } from '../src/components/Txt';
+import { useLogs } from '../src/core';
 import { useSession } from '../src/stores/session';
 import { goBack } from '../src/lib/nav';
 
@@ -28,7 +30,14 @@ export default function Session() {
     return () => clearInterval(t);
   }, [devStart]);
 
-  const firstUndone = session.sets.findIndex((s) => !s.done);
+  const entries = useLogs((s) => s.entries);
+  const exercise = session.exercises[session.exIndex];
+  const sets = exercise?.sets ?? [];
+  const firstUndone = sets.findIndex((s) => !s.done);
+  const next = session.exercises[session.exIndex + 1];
+  // "last:" shows only when history has a top set for this exercise; a fresh
+  // account gets no invented numbers.
+  const last = exercise ? lastTopSet(entries, exercise.name) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg, paddingTop: 64 }}>
@@ -40,7 +49,9 @@ export default function Session() {
             {session.name}
           </Txt>
           <Txt size={12} w={700} color={colors.mutedDark}>
-            1 of 6 exercises
+            {session.exercises.length > 0
+              ? `${session.exIndex + 1} of ${session.exercises.length} exercises`
+              : ''}
           </Txt>
         </View>
 
@@ -69,14 +80,16 @@ export default function Session() {
         <View style={{ backgroundColor: colors.tile, borderRadius: 22, padding: 18, gap: 12 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <Txt size={20} w={900}>
-              Bench press
+              {exercise?.name ?? ''}
             </Txt>
-            <Txt size={12} w={700} color={colors.mutedDark}>
-              last: 60 kg × 8
-            </Txt>
+            {last ? (
+              <Txt size={12} w={700} color={colors.mutedDark}>
+                last: {last}
+              </Txt>
+            ) : null}
           </View>
           <View style={{ gap: 8 }}>
-            {session.sets.map((s, i) => {
+            {sets.map((s, i) => {
               const isNext = !s.done && i === firstUndone;
               return (
                 <Pressable98
@@ -146,31 +159,34 @@ export default function Session() {
           </Pressable98>
         </View>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: colors.tile,
-            borderRadius: 16,
-            paddingVertical: 13,
-            paddingHorizontal: 16,
-            opacity: 0.7,
-          }}
-        >
-          <Txt size={13.5} w={800} color={colors.mutedDark}>
-            Next: Incline dumbbell press
-          </Txt>
-          <Svg width={8} height={14} viewBox="0 0 8 14">
-            <Path
-              d="M1 1l6 6-6 6"
-              stroke={colors.mutedDark}
-              strokeWidth={2}
-              fill="none"
-              strokeLinecap="round"
-            />
-          </Svg>
-        </View>
+        {next ? (
+          <Pressable98
+            onPress={session.nextExercise}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: colors.tile,
+              borderRadius: 16,
+              paddingVertical: 13,
+              paddingHorizontal: 16,
+              opacity: 0.7,
+            }}
+          >
+            <Txt size={13.5} w={800} color={colors.mutedDark}>
+              Next: {next.name}
+            </Txt>
+            <Svg width={8} height={14} viewBox="0 0 8 14">
+              <Path
+                d="M1 1l6 6-6 6"
+                stroke={colors.mutedDark}
+                strokeWidth={2}
+                fill="none"
+                strokeLinecap="round"
+              />
+            </Svg>
+          </Pressable98>
+        ) : null}
       </ScrollView>
 
       <View

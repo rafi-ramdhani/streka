@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   addDays,
+  bestLift,
   monthWeekCounts,
   weekDayCounts,
   weekStartOf,
@@ -69,7 +70,7 @@ export function Trends() {
       if (e.data.kind === 'run') longestRun = Math.max(longestRun, e.data.km);
       if (e.data.kind === 'steps') bestSteps = Math.max(bestSteps, e.data.count);
     }
-    return { longestRun, bestSteps };
+    return { longestRun, bestSteps, lift: bestLift(entries, monthStart) };
   }, [entries, today]);
 
   const bars = isWeek
@@ -212,9 +213,11 @@ export function Trends() {
           <TileLabel>Bests this month</TileLabel>
           <div style={{ display: 'flex', gap: 24, marginTop: 14, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 900 }}>62.5 kg</div>
+              <div style={{ fontSize: 22, fontWeight: 900 }}>
+                {bests.lift ? `${bests.lift.kg} kg` : '—'}
+              </div>
               <div style={{ fontSize: 11, fontWeight: 600, color: colors.mutedLight }}>
-                bench press
+                {bests.lift ? bests.lift.exercise.toLowerCase() : 'top lift'}
               </div>
             </div>
             <div>
