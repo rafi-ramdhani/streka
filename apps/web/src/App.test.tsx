@@ -35,4 +35,15 @@ describe('web board', () => {
     await user.click(screen.getByText('Goals'));
     expect(screen.getByText('70,000 steps a week')).toBeTruthy();
   });
+
+  it('below 860px the modal becomes a bottom sheet', async () => {
+    Object.defineProperty(window, 'innerWidth', { writable: true, value: 500 });
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByText('Meals'));
+    const card = screen.getByText('Log a meal').parentElement!.parentElement!;
+    expect(card.style.borderRadius).toBe('22px 22px 0 0');
+    expect(card.style.width).toBe('100%');
+    Object.defineProperty(window, 'innerWidth', { writable: true, value: 1024 });
+  });
 });
