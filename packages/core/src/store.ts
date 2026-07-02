@@ -24,6 +24,7 @@ export interface LogsState {
   entries: LogEntry[];
   hydrated: boolean;
   append: (entry: LogEntry) => void;
+  update: (id: string, data: LogData) => void;
   tombstone: (id: string) => void;
   replaceAll: (entries: LogEntry[]) => void;
 }
@@ -77,6 +78,14 @@ export function createCore(opts: CoreOptions) {
     append: (entry) => {
       set((s) => ({ entries: [...s.entries, entry] }));
       if (repo) persistWrite(repo.insert(entry, now()));
+    },
+    // Edit-in-place for the day log: id, ts and day are immutable, only the
+    // payload changes; the repo write re-enters the row into the outbox.
+    update: (id, data) => {
+      set((s) => ({
+        entries: s.entries.map((e) => (e.id === id ? { ...e, data } : e)),
+      }));
+      if (repo) persistWrite(repo.update(id, data, now()));
     },
     tombstone: (id) => {
       set((s) => ({

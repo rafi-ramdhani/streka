@@ -33,6 +33,10 @@ export const sqliteLogRepo: LogRepo = {
     const db = await dbPromise;
     await db.runAsync(SQL.insert, entryToRowParams(entry, updatedAt) as SQLite.SQLiteBindParams);
   },
+  update: async (id, data, updatedAt) => {
+    const db = await dbPromise;
+    await db.runAsync(SQL.updateData, [JSON.stringify(data), data.kind, updatedAt, id]);
+  },
   tombstone: async (id: string, updatedAt: number) => {
     const db = await dbPromise;
     await db.runAsync(SQL.tombstone, [updatedAt, id]);

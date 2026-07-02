@@ -1,4 +1,4 @@
-import type { LogEntry } from './types';
+import type { LogData, LogEntry } from './types';
 
 // Persistence seam for log entries. The mobile app implements this over
 // expo-sqlite using the statements in schema.ts; tests use better-sqlite3
@@ -8,6 +8,7 @@ export interface LogRepo {
   init: () => Promise<void>;
   all: () => Promise<LogEntry[]>;
   insert: (entry: LogEntry, updatedAt: number) => Promise<void>;
+  update: (id: string, data: LogData, updatedAt: number) => Promise<void>;
   tombstone: (id: string, updatedAt: number) => Promise<void>;
   replaceAll: (entries: LogEntry[], updatedAt: number) => Promise<void>;
   // Outbox for the deferred sync backend: rows never uploaded, or changed

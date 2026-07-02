@@ -55,6 +55,9 @@ export const SQL = {
                   synced_at = excluded.synced_at
                 WHERE excluded.updated_at > log_entries.updated_at`,
   tombstone: 'UPDATE log_entries SET deleted = 1, updated_at = ? WHERE id = ?',
+  // Local edit of an entry's payload; the bumped updated_at re-enters the
+  // row into the outbox and wins LWW merges, like any other local write.
+  updateData: 'UPDATE log_entries SET payload = ?, kind = ?, updated_at = ? WHERE id = ?',
   deleteAll: 'DELETE FROM log_entries',
   selectPending:
     'SELECT * FROM log_entries WHERE synced_at IS NULL OR updated_at > synced_at ORDER BY updated_at',

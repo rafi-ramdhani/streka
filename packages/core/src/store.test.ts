@@ -136,3 +136,27 @@ describe('hydrate', () => {
     expect(core.useSettings.getState().nudge.enabled).toBe(false);
   });
 });
+
+describe('update', () => {
+  it('rewrites the entry data in place, keeping id, ts and day', () => {
+    const core = makeCore();
+    core.logActivity({
+      tracker: 'meals',
+      source: 'manual',
+      data: { kind: 'meal', kcal: 300 },
+      title: 'Meal logged · 300 kcal',
+    });
+    core.useLogs.getState().update('uuid-1', { kind: 'meal', kcal: 450 });
+    const e = core.useLogs.getState().entries[0]!;
+    expect(e.data).toEqual({ kind: 'meal', kcal: 450 });
+    expect(e.id).toBe('uuid-1');
+    expect(e.day).toBe('2026-07-02');
+    expect(e.ts).toBe(NOW);
+  });
+
+  it('ignores unknown ids', () => {
+    const core = makeCore();
+    core.useLogs.getState().update('nope', { kind: 'meal', kcal: 1 });
+    expect(core.useLogs.getState().entries).toHaveLength(0);
+  });
+});

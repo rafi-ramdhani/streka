@@ -47,6 +47,19 @@ describe('log_entries schema', () => {
     expect(rowToEntry(pending[0]!).deleted).toBe(true);
   });
 
+  it('updateData rewrites the payload, bumps updated_at, re-enters the outbox', () => {
+    const e = entry('a', '2026-07-02', 300);
+    db.prepare(SQL.insert).run(...entryToRowParams(e, 1000));
+    db.prepare(SQL.markSynced).run(2000, 'a');
+    expect(db.prepare(SQL.selectPending).all()).toHaveLength(0);
+
+    db.prepare(SQL.updateData).run(JSON.stringify({ kind: 'meal', kcal: 450 }), 'meal', 3000, 'a');
+    const pending = db.prepare(SQL.selectPending).all() as LogRow[];
+    expect(pending).toHaveLength(1);
+    expect(rowToEntry(pending[0]!).data).toEqual({ kind: 'meal', kcal: 450 });
+    expect(pending[0]!.updated_at).toBe(3000);
+  });
+
   it('upsertMerge applies only newer server rows (last write wins)', () => {
     const local = entry('a', '2026-07-02', 300);
     db.prepare(SQL.insert).run(...entryToRowParams(local, 5000));

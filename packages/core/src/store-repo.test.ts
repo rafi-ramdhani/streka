@@ -21,6 +21,10 @@ function fakeRepo(seed: LogEntry[] = []) {
     init: async () => {},
     all: async () => [...rows.values()].map((r) => r.entry),
     insert: async (entry, updatedAt) => void rows.set(entry.id, { entry, updatedAt, syncedAt: null }),
+    update: async (id, data, updatedAt) => {
+      const r = rows.get(id);
+      if (r) rows.set(id, { entry: { ...r.entry, data }, updatedAt, syncedAt: r.syncedAt });
+    },
     tombstone: async (id, updatedAt) => {
       const r = rows.get(id);
       if (r) rows.set(id, { entry: { ...r.entry, deleted: true }, updatedAt, syncedAt: r.syncedAt });
@@ -102,6 +106,28 @@ describe('store with LogRepo', () => {
     core.useLogs.getState().tombstone('uuid-1');
     await vi.waitFor(() => expect(rows.get('uuid-1')!.entry.deleted).toBe(true));
     expect(core.useLogs.getState().entries[0]!.deleted).toBe(true);
+  });
+
+  it('update writes through and re-enters the outbox', async () => {
+    const { repo, rows } = fakeRepo();
+    const core = makeCore(repo);
+    await core.hydrate();
+    core.logActivity({
+      tracker: 'weight',
+      source: 'manual',
+      data: { kind: 'weight', kg: 72.4 },
+      title: 'Weight logged',
+    });
+    await vi.waitFor(() => expect(rows.has('uuid-1')).toBe(true));
+    // The fake clock is frozen at NOW, so sync "earlier" to keep the
+    // outbox rule (updated_at strictly newer) meaningful.
+    await repo.markSynced(['uuid-1'], NOW - 1000);
+
+    core.useLogs.getState().update('uuid-1', { kind: 'weight', kg: 71.9 });
+    await vi.waitFor(() =>
+      expect(rows.get('uuid-1')!.entry.data).toEqual({ kind: 'weight', kg: 71.9 }),
+    );
+    expect((await repo.pending()).map((e) => e.id)).toEqual(['uuid-1']);
   });
 
   it('replaceAll resets both store and repo', async () => {
