@@ -23,7 +23,8 @@ export default function Session() {
   const devStart = useLocalSearchParams<{ dev?: string }>().dev;
 
   useEffect(() => {
-    if (__DEV__ && devStart && !useSession.getState().active) {
+    // dev=1 starts a session unless one is live; dev=new restarts regardless.
+    if (__DEV__ && devStart && (devStart === 'new' || !useSession.getState().active)) {
       useSession.getState().start('Upper body');
     }
     const t = setInterval(() => setTick((n) => n + 1), 1000);
