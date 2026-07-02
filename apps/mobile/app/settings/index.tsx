@@ -1,10 +1,15 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { router } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useLogs, useSettings, useSync } from '../src/core';
-import { Pressable98 } from '../src/components/Pressable98';
-import { Toggle } from '../src/components/Toggle';
-import { Txt } from '../src/components/Txt';
-import { colors } from '../src/theme';
+import { useLogs, useSettings, useSync } from '../../src/core';
+import { BigButton } from '../../src/components/BigButton';
+import { LogSheet } from '../../src/components/LogSheet';
+import { Pressable98 } from '../../src/components/Pressable98';
+import { Toggle } from '../../src/components/Toggle';
+import { Txt } from '../../src/components/Txt';
+import { colors } from '../../src/theme';
 
 function Chevron() {
   return (
@@ -80,6 +85,13 @@ export default function Settings() {
   const settings = useSettings();
   const online = useSync((s) => s.online);
   const entries = useLogs((s) => s.entries);
+  const [timeSheet, setTimeSheet] = useState(false);
+  const [draftTime, setDraftTime] = useState(() => {
+    const [h = 17, m = 30] = settings.nudge.time.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  });
 
   const trackerCount = Object.values(settings.picked).filter(Boolean).length;
   const rightLabel = (label: string) => (
@@ -177,15 +189,20 @@ export default function Settings() {
       </View>
 
       <Group>
-        <Row title="My board" right={rightLabel(`${trackerCount} trackers`)} onPress={() => {}} />
+        <Row
+          title="My board"
+          right={rightLabel(`${trackerCount} trackers`)}
+          onPress={() => router.push('/settings/board')}
+        />
         <Row
           title="Weekly rhythm"
           right={rightLabel(`${settings.rhythmDays} active days`)}
-          onPress={() => {}}
+          onPress={() => router.push('/settings/rhythm')}
         />
         <Row
           title="Nudge"
           sub={`Days you haven't logged · ${settings.nudge.time}`}
+          onPress={() => setTimeSheet(true)}
           right={
             <Toggle
               on={settings.nudge.enabled}
@@ -234,6 +251,30 @@ export default function Settings() {
       <Txt size={10.5} w={600} color="#4a544a" center style={{ paddingTop: 2, paddingBottom: 10 }}>
         Streka 1.0 · made for keeping up
       </Txt>
+
+      <LogSheet title="Nudge time" visible={timeSheet} onClose={() => setTimeSheet(false)}>
+        <View style={{ alignItems: 'center' }}>
+          <DateTimePicker
+            value={draftTime}
+            mode="time"
+            display="spinner"
+            themeVariant="dark"
+            onChange={(_, date) => {
+              if (date) setDraftTime(date);
+            }}
+          />
+        </View>
+        <BigButton
+          label="SAVE TIME"
+          pad={15}
+          onPress={() => {
+            setTimeSheet(false);
+            const hh = String(draftTime.getHours()).padStart(2, '0');
+            const mm = String(draftTime.getMinutes()).padStart(2, '0');
+            settings.set({ nudge: { ...settings.nudge, time: `${hh}:${mm}` } });
+          }}
+        />
+      </LogSheet>
     </ScrollView>
   );
 }

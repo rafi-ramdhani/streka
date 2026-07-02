@@ -13,6 +13,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { core, useLogs } from '../src/core';
+import { installNudgeScheduler } from '../src/nudges';
 import { colors } from '../src/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -37,7 +38,10 @@ export default function RootLayout() {
   const hydrated = useLogs((s) => s.hydrated);
 
   useEffect(() => {
-    if (loaded && hydrated) SplashScreen.hideAsync();
+    if (loaded && hydrated) {
+      SplashScreen.hideAsync();
+      installNudgeScheduler();
+    }
   }, [loaded, hydrated]);
 
   if (!loaded || !hydrated) return null;
