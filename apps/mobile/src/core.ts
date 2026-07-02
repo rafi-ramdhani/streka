@@ -1,12 +1,11 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createCore, createMockScan, mockHealth } from '@streka/core';
+import { kvStorage, sqliteLogRepo } from './db';
 
+// All durable state lives in one SQLite database (src/db.ts): log entries in
+// the sync-ready event table, settings in the kv table.
 export const core = createCore({
-  storage: {
-    getItem: (name) => AsyncStorage.getItem(name),
-    setItem: (name, value) => AsyncStorage.setItem(name, value),
-    removeItem: (name) => AsyncStorage.removeItem(name),
-  },
+  storage: kvStorage,
+  logRepo: sqliteLogRepo,
 });
 
 export const { useSettings, useLogs, useSync, useToast, showToast, logActivity } = core;

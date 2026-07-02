@@ -12,9 +12,17 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { core, useLogs } from '../src/core';
 import { colors } from '../src/theme';
 
 SplashScreen.preventAutoHideAsync();
+
+// Kick off the SQLite hydration as early as possible.
+const hydration = core.hydrate().catch((err) => {
+  console.warn('streka: hydration failed', err);
+  useLogs.setState({ hydrated: true });
+});
+void hydration;
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -26,12 +34,13 @@ export default function RootLayout() {
     Archivo_900Black,
     Archivo_900Black_Italic,
   });
+  const hydrated = useLogs((s) => s.hydrated);
 
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync();
-  }, [loaded]);
+    if (loaded && hydrated) SplashScreen.hideAsync();
+  }, [loaded, hydrated]);
 
-  if (!loaded) return null;
+  if (!loaded || !hydrated) return null;
 
   return (
     <>

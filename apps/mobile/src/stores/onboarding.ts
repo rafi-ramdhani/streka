@@ -70,7 +70,7 @@ export function enterApp(hasAccount: boolean) {
 // dataset (auth screens are an undesigned open item).
 export function enterAsReturning() {
   const { entries, settings } = seedDemo(dayOf(Date.now()));
-  core.useLogs.setState({ entries });
+  core.useLogs.getState().replaceAll(entries);
   core.useSettings.getState().set(settings);
   core.useSync.getState().setOnline(true);
   useOnboarding.setState({ coachPending: false });

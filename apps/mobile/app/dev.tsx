@@ -17,7 +17,7 @@ export default function DevSeed() {
       if (state === 'demo') {
         enterAsReturning();
       } else if (state === 'fresh') {
-        core.useLogs.setState({ entries: [] });
+        core.useLogs.getState().replaceAll([]);
         enterApp(false);
         if (coach === '0') useOnboarding.setState({ coachPending: false });
       }

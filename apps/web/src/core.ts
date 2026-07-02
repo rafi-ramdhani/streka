@@ -45,7 +45,7 @@ export function ensureSeeded() {
       data: { kind: 'meal', kcal: 550 },
     },
   );
-  core.useLogs.setState({ entries });
+  core.useLogs.getState().replaceAll(entries);
   core.useSettings.getState().set(settings);
   localStorage.setItem(SEED_FLAG, 'yes');
 }
