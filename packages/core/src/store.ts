@@ -100,9 +100,24 @@ export function createCore(opts: CoreOptions) {
         }),
       );
 
+  // Settings rehydrate through async storage on their own schedule; a write
+  // made before that lands gets clobbered by it. Callers gate the app on
+  // hydrate(), so hydrate() must cover settings too. The timeout keeps a
+  // broken storage from holding the splash screen forever.
+  const settingsReady = () =>
+    new Promise<void>((resolve) => {
+      if (useSettings.persist.hasHydrated()) return resolve();
+      const timer = setTimeout(resolve, 3000);
+      useSettings.persist.onFinishHydration(() => {
+        clearTimeout(timer);
+        resolve();
+      });
+    });
+
   // Load persisted entries into the in-memory cache. Without a repo the
   // persist middleware already rehydrated synchronously; just flip the flag.
   const hydrate = async () => {
+    await settingsReady();
     if (repo) {
       await repo.init();
       const entries = await repo.all();

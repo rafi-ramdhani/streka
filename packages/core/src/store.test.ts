@@ -111,3 +111,28 @@ describe('logActivity', () => {
     expect(core.useLogs.getState().entries).toHaveLength(1);
   });
 });
+
+describe('hydrate', () => {
+  it('waits for settings rehydration so early writes are not clobbered', async () => {
+    vi.useRealTimers();
+    const m = new Map<string, string>([
+      [
+        'streka-settings',
+        JSON.stringify({ state: { onboarded: true, hasAccount: true }, version: 0 }),
+      ],
+    ]);
+    const slow: StateStorage = {
+      getItem: (k) => new Promise((r) => setTimeout(() => r(m.get(k) ?? null), 20)),
+      setItem: (k, v) => void m.set(k, v),
+      removeItem: (k) => void m.delete(k),
+    };
+    const core = createCore({ storage: slow });
+
+    await core.hydrate();
+    expect(core.useSettings.getState().onboarded).toBe(true);
+
+    core.useSettings.getState().set({ nudge: { enabled: false, time: '17:30' } });
+    await new Promise((r) => setTimeout(r, 40));
+    expect(core.useSettings.getState().nudge.enabled).toBe(false);
+  });
+});
