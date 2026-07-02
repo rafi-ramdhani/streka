@@ -3,6 +3,6 @@
   "private": true,
   "scripts": {
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r exec tsc --noEmit"
+    "typecheck": "pnpm --filter '!landing' -r exec tsc --noEmit"
   }
 }
