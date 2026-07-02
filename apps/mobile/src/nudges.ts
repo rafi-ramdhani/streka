@@ -20,7 +20,8 @@ async function loadNotifications(): Promise<NotificationsModule | null> {
   if (notifications !== undefined) return notifications;
   const inExpoGo = Constants.executionEnvironment === 'storeClient';
   if (Platform.OS === 'android' && inExpoGo) {
-    console.warn('streka: nudges need a development build on Android (Expo Go limitation)');
+    // Known limitation, documented in the TAD: nudges silently no-op here
+    // until a development build exists.
     notifications = null;
     return null;
   }
