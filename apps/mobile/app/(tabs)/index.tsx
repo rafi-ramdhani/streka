@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
 import {
   dayOf,
@@ -59,9 +59,10 @@ export default function Board() {
   const dismissCoach = useOnboarding((s) => s.dismissCoach);
   // Deep links can open a sheet directly (also handy for verification).
   const params = useLocalSearchParams<{ sheet?: string }>();
-  const initialSheet =
-    params.sheet && params.sheet in SHEET_TITLES ? (params.sheet as SheetName) : null;
-  const [sheet, setSheet] = useState<SheetName | null>(initialSheet);
+  const [sheet, setSheet] = useState<SheetName | null>(null);
+  useEffect(() => {
+    if (params.sheet && params.sheet in SHEET_TITLES) setSheet(params.sheet as SheetName);
+  }, [params.sheet]);
 
   const today = dayOf(Date.now());
   const board = useMemo(() => todayBoard(entries, today), [entries, today]);

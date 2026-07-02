@@ -1,4 +1,8 @@
-import { Redirect, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import { core } from '../src/core';
+import { colors } from '../src/theme';
 import { enterApp, enterAsReturning, useOnboarding } from '../src/stores/onboarding';
 
 // Dev-only state seeder for screenshot verification via deep links, e.g.
@@ -8,14 +12,18 @@ import { enterApp, enterAsReturning, useOnboarding } from '../src/stores/onboard
 export default function DevSeed() {
   const { state, coach } = useLocalSearchParams<{ state?: string; coach?: string }>();
 
-  if (!__DEV__) return <Redirect href="/" />;
+  useEffect(() => {
+    if (__DEV__) {
+      if (state === 'demo') {
+        enterAsReturning();
+      } else if (state === 'fresh') {
+        core.useLogs.setState({ entries: [] });
+        enterApp(false);
+        if (coach === '0') useOnboarding.setState({ coachPending: false });
+      }
+    }
+    router.replace('/');
+  }, [state, coach]);
 
-  if (state === 'demo') {
-    enterAsReturning();
-  } else if (state === 'fresh') {
-    enterApp(false);
-    if (coach === '0') useOnboarding.setState({ coachPending: false });
-  }
-
-  return <Redirect href="/" />;
+  return <View style={{ flex: 1, backgroundColor: colors.appBg }} />;
 }
