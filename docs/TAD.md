@@ -93,10 +93,11 @@ Persistence: on mobile, all durable state lives in one SQLite database (expo-sql
 
 ```ts
 interface ScanService  { analyze(photo): Promise<ScanResult> }   // mock: nasi-goreng result; every 2nd call returns low-confidence matches (prototype behavior)
-interface HealthProvider { todaySteps(): number; lastSleep(): {h,m}|null }  // mock: designed values; 'phone only' copy when not connected
 interface SyncService  { push(entries): Promise<void> }          // mock no-op; drives nothing in v1
 interface NudgeScheduler { schedule(time, enabled): void }       // mock no-op
 ```
+
+Health values are no longer a mocked service: mobile reads the real pedometer through `useHealthToday()` (see 5.2) and the demo dataset carries its own designed numbers, detected via `isDemoData(entries)`.
 
 `ScanResult = { dish, confidence: 'high'|'low', ingredients: {name, kcal}[], matches?: {name, kcal, likely}[] }`. Low-confidence results are never auto-logged.
 
@@ -133,8 +134,8 @@ Onboarding completion sets `onboarded`; picked trackers literally define which t
 |---|---|---|
 | GPS run | expo-location foreground watch; distance from coordinates; auto-pause on no movement; press-and-hold END (prototype simplifies to tap; handoff says production must hold) | background-location module + Play policy review |
 | Route map | react-native-maps: live polyline follows the run; summary and run detail fit the recorded route; routes stored as [lat,lng] pairs in the run entry payload (decimated to ~500 points), so they replicate through log_entries; quick logs keep the designed placeholder | dark map styling on Android (Google requires a custom style JSON) |
-| Camera (scan) | placeholder viewfinder as designed (simulator has no camera); shutter triggers mock analyze | expo-camera + photo upload |
-| Steps/sleep | mock HealthProvider; copy switches on `healthConnected` (`auto` vs `phone only` / `connect Health to auto-fill`) | HealthKit / Health Connect |
+| Camera (scan) | expo-camera live viewfinder + shutter capture, expo-image-picker for FROM PHOTOS; captured photo shows on the result screens; placeholder fallback when no permission or hardware; analyze stays mocked | LLM backend for the actual estimate |
+| Steps/sleep | `useHealthToday()`: real pedometer steps on iOS (expo-sensors, permission asked when Health is connected); Android and sleep render an honest dash until Health Connect / HealthKit land in a dev build; demo dataset shows its designed numbers | HealthKit / Health Connect |
 | Nudges | expo-notifications one-shot rescheduled on log/toggle/time change (product rule 6); notification copy is a placeholder pending owner copy (open item 4) | owner copy + Android channel config |
 | Sign-in | mock: Apple/Google/email buttons set `hasAccount` (auth screens are an undesigned open item) | real auth |
 
@@ -172,6 +173,7 @@ Findings from the build/verification pass (2026-07-02):
 9. Verification method: core logic via unit tests (55); web via Testing Library + browser walk; mobile via simulator deep-link walk (a dev-only `/dev` seeding route exists for this). Full tap-through on simulator needs macOS assistive access, which was not granted in this session. Web sub-860px layout is covered by a component test asserting the bottom-sheet modal variant.
 10. Follow-up round (same day): run detail screen (canvas 10a) added and wired to Run-tile long-press, with Delete as tombstone and Edit rendered but inert (no designed behavior); imperial units implemented as display-only conversion (entries always store kg/km; kcal from runs estimated at the canvas's 74 kcal/km ratio). Swim meters and kcal stay metric, since the Units row only specs kg·km / lb·mi.
 11. Third round (same day): mobile persistence moved to SQLite with the sync-ready schema described in 4.3 (account sync itself stays deferred per owner instruction; the outbox and LWW merge are in place and tested). Nudges now schedule real local notifications; the notification copy reuses the coach mark's language and is flagged for owner copy. Settings rows are functional: My board and Weekly rhythm edit live settings by reusing the onboarding pickers as sub-screens (the canvas only designed the rows), and the nudge time opens a picker sheet. Undesigned sub-screen layouts are interpretations, flagged here rather than silently invented.
+12. Fourth round (same day, "finished product" pass): the workout session is a real multi-exercise model. Templates carry actual exercise lists sized to the sheet metas (Upper body 6, Lower body 5, Full body 30 8); set labels are honest rep prescriptions upgraded to the user's last recorded top set; finishing saves per-exercise top sets into `WorkoutData.exercises`, from which the Trends best lift, the "last:" chip, and the sheet's "done Tue" metas all derive (`maxWeightKg`, `lastTopSet`, `bestLift`, `lastWorkoutDay`, `summarizeSession` in core, all unit-tested). Exercise names and rep prescriptions in the starter templates are interim content pending owner copy. Every invented number for real accounts is gone: mock health values render only on the demo dataset, the run screen's watch bpm is a dash, the class tile's "Yoga 18:30" booking is demo-only, and the weight tile shows a dash before a baseline. Health copy is platform-aware (Apple Health / Health Connect). Fixed paddings were replaced with safe-area-derived ones; Android hardware back returns to the Board before exiting; the local day rolls over without a reload (`useToday`); app icon, adaptive icon, splash, and favicon are generated from the slash mark. Hydration now also gates on settings rehydration (early writes were silently clobbered), and the nudge scheduler queues re-syncs instead of dropping changes that arrive mid-flight.
 
 ## 10. Build order
 
