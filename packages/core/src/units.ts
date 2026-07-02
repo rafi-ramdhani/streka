@@ -21,6 +21,10 @@ export function kmToMi(km: number): number {
   return round2(km * MI_PER_KM);
 }
 
+export function miToKm(mi: number): number {
+  return round2(mi / MI_PER_KM);
+}
+
 export function formatWeight(kg: number, units: Units): string {
   return units === 'imperial' ? `${kgToLb(kg).toFixed(1)} lb` : `${kg.toFixed(1)} kg`;
 }

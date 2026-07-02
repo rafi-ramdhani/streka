@@ -12,10 +12,11 @@ import { useSession } from '../src/stores/session';
 // nudge=0 keeps the reminder off so no permission prompt blocks automation.
 // Not part of the design; no-op outside dev builds.
 export default function DevSeed() {
-  const { state, coach, nudge } = useLocalSearchParams<{
+  const { state, coach, nudge, log } = useLocalSearchParams<{
     state?: string;
     coach?: string;
     nudge?: string;
+    log?: string;
   }>();
 
   useEffect(() => {
@@ -34,9 +35,19 @@ export default function DevSeed() {
         const s = core.useSettings.getState();
         core.useSettings.setState({ nudge: { ...s.nudge, enabled: false } });
       }
+      // log=today drops a few entries on today's board so the day-log and
+      // edit flows can be walked without tapping through the sheets.
+      if (log === 'today') {
+        const add = (tracker: Parameters<typeof core.logActivity>[0]['tracker'], data: Parameters<typeof core.logActivity>[0]['data']) =>
+          core.logActivity({ tracker, source: 'manual', data, title: 'dev' });
+        add('meals', { kind: 'meal', kcal: 550, label: 'Lunch' });
+        add('meals', { kind: 'meal', kcal: 320 });
+        add('running', { kind: 'run', km: 4.2, time: '23:14', pace: '5:32' });
+        add('weight', { kind: 'weight', kg: 72.4 });
+      }
     }
     router.replace('/');
-  }, [state, coach, nudge]);
+  }, [state, coach, nudge, log]);
 
   return <View style={{ flex: 1, backgroundColor: colors.appBg }} />;
 }

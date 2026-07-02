@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDistance, formatWeight, kgToLb, kmToMi, lbToKg } from './units';
+import { formatDistance, formatWeight, kgToLb, kmToMi, lbToKg, miToKm } from './units';
 
 describe('unit conversion', () => {
   it('kgToLb rounds to 0.1', () => {
@@ -25,5 +25,12 @@ describe('unit conversion', () => {
   it('formatDistance honors units', () => {
     expect(formatDistance(4.2, 'metric')).toBe('4.2 km');
     expect(formatDistance(4.2, 'imperial')).toBe('2.61 mi');
+  });
+});
+
+describe('miToKm', () => {
+  it('rounds to 0.01 and round-trips sanely', () => {
+    expect(miToKm(2.61)).toBe(4.2);
+    expect(miToKm(0)).toBe(0);
   });
 });

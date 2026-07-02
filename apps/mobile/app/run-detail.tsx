@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { formatDistance, intentionalDays, kmToMi, streak } from '@streka/core';
@@ -7,6 +8,7 @@ import { Pressable98 } from '../src/components/Pressable98';
 import { RouteMap } from '../src/components/RouteMap';
 import { SlashMark } from '../src/components/SlashMark';
 import { Txt } from '../src/components/Txt';
+import { EditEntrySheet } from '../src/sheets/EditEntrySheet';
 import { colors } from '../src/theme';
 import { goBack } from '../src/lib/nav';
 import { useScreenPad } from '../src/lib/screenPad';
@@ -32,6 +34,7 @@ export default function RunDetail() {
   const units = useSettings((s) => s.units);
   const tombstone = useLogs((s) => s.tombstone);
   const pad = useScreenPad();
+  const [editing, setEditing] = useState(false);
 
   const entry = entries.find((e) => e.id === id && !e.deleted);
   if (!entry || entry.data.kind !== 'run') {
@@ -193,6 +196,7 @@ export default function RunDetail() {
         }}
       >
         <Pressable98
+          onPress={() => setEditing(true)}
           style={{
             flex: 1,
             alignItems: 'center',
@@ -223,6 +227,9 @@ export default function RunDetail() {
           </Txt>
         </Pressable98>
       </View>
+      {editing ? (
+        <EditEntrySheet entry={entry} units={units} onClose={() => setEditing(false)} />
+      ) : null}
     </View>
   );
 }

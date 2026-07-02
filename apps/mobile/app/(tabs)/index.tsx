@@ -11,6 +11,7 @@ import {
   streak,
   todayBoard,
   type LogEntry,
+  type TrackerId,
 } from '@streka/core';
 import { isDemoData } from '@streka/core';
 import { logActivity, useLogs, useSettings } from '../../src/core';
@@ -117,15 +118,12 @@ export default function Board() {
         ? `${weekDiffKg <= 0 ? '▾' : '▴'} ${(settings.units === 'imperial' ? kgToLb(Math.abs(weekDiffKg)) : Math.abs(weekDiffKg)).toFixed(1)} this week`
         : 'baseline set';
 
-  // Long-press on the Run tile opens today's run detail (footer hint promise).
-  const todayRun = useMemo(() => {
-    let best: LogEntry | undefined;
-    for (const e of entries) {
-      if (e.deleted || e.day !== today || e.data.kind !== 'run') continue;
-      if (!best || e.ts > best.ts) best = e;
-    }
-    return best;
-  }, [entries, today]);
+  // "hold for details" (footer hint): any tile with something logged today
+  // long-presses into the day log, where entries can be edited or deleted.
+  const hasTodayEntry = (t: TrackerId) =>
+    entries.some((e) => !e.deleted && e.day === today && e.tracker === t);
+  const holdFor = (t: TrackerId) =>
+    hasTodayEntry(t) ? () => router.push(`/day-log?tracker=${t}`) : undefined;
 
   const progressBar = (pct: number, width_: number, h: number) => (
     <View
@@ -235,6 +233,7 @@ export default function Board() {
                     : board.workout.name
                 }
                 green
+                onLongPress={holdFor('workouts')}
                 footer={
                   <Txt size={11} w={800} ls={0.04} color={colors.ink} style={{ marginTop: 12 }}>
                     STREAK {streakN}
@@ -259,6 +258,7 @@ export default function Board() {
                 onPress={() =>
                   sessionActive ? router.push('/session') : setSheet('workout')
                 }
+                onLongPress={holdFor('workouts')}
                 footer={
                   <Txt
                     size={11}
@@ -286,6 +286,7 @@ export default function Board() {
               }
               plus
               onPress={() => setSheet('meal')}
+              onLongPress={holdFor('meals')}
               footer={progressBar(
                 Math.round((board.mealsKcal / settings.kcalGoal) * 100),
                 half - 32,
@@ -312,9 +313,7 @@ export default function Board() {
               }
               plus
               onPress={() => setSheet('run')}
-              onLongPress={
-                todayRun ? () => router.push(`/run-detail?id=${todayRun.id}`) : undefined
-              }
+              onLongPress={holdFor('running')}
             />
           ) : null}
 
@@ -329,6 +328,7 @@ export default function Board() {
               subColor={board.weightLoggedToday ? colors.accentOnDark : colors.mutedDark}
               plus
               onPress={() => setSheet('weight')}
+              onLongPress={holdFor('weight')}
             />
           ) : null}
 
@@ -348,6 +348,7 @@ export default function Board() {
               }
               plus
               onPress={() => setSheet('swim')}
+              onLongPress={holdFor('swimming')}
             />
           ) : null}
 
@@ -364,6 +365,7 @@ export default function Board() {
                     : 'tap + when you attend one'
               }
               plus={!board.classDone}
+              onLongPress={holdFor('classes')}
               onPress={
                 board.classDone
                   ? undefined
