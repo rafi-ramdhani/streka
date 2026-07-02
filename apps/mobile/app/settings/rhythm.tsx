@@ -3,6 +3,7 @@ import { useSettings } from '../../src/core';
 import { Pressable98 } from '../../src/components/Pressable98';
 import { SubHeader } from '../../src/components/SubHeader';
 import { Txt } from '../../src/components/Txt';
+import { useScreenPad } from '../../src/lib/screenPad';
 import { colors } from '../../src/theme';
 
 const DAY_OPTS = [
@@ -16,9 +17,10 @@ const DAY_OPTS = [
 // Weekly rhythm (Settings): the onboarding day picker, editing the live goal.
 export default function RhythmSettings() {
   const settings = useSettings();
+  const pad = useScreenPad();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.appBg, paddingTop: 64 }}>
+    <View style={{ flex: 1, backgroundColor: colors.appBg, paddingTop: pad.top }}>
       <View style={{ paddingHorizontal: 22, gap: 16 }}>
         <SubHeader title="Weekly rhythm" />
         <Txt size={13} w={600} color={colors.mutedDark}>

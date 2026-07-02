@@ -10,6 +10,8 @@ import {
 } from '@streka/core';
 import { useLogs, useSettings } from '../../src/core';
 import { useHealthToday } from '../../src/health';
+import { useScreenPad } from '../../src/lib/screenPad';
+import { useToday } from '../../src/lib/useToday';
 import { ProgressSegments } from '../../src/components/ProgressSegments';
 import { Pressable98 } from '../../src/components/Pressable98';
 import { Toggle } from '../../src/components/Toggle';
@@ -45,7 +47,8 @@ export default function Goals() {
   const settings = useSettings();
   const entries = useLogs((s) => s.entries);
   const [stepsNudge, setStepsNudge] = useState(false);
-  const today = dayOf(Date.now());
+  const pad = useScreenPad();
+  const today = useToday();
   const weekStart = weekStartOf(today);
 
   const fresh = useMemo(() => entries.every((e) => e.day === today), [entries, today]);
@@ -110,7 +113,12 @@ export default function Goals() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.appBg }}
-      contentContainerStyle={{ paddingTop: 64, paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}
+      contentContainerStyle={{
+        paddingTop: pad.top,
+        paddingHorizontal: 20,
+        gap: 14,
+        paddingBottom: 20,
+      }}
     >
       <View>
         <Txt size={12} w={600} ls={0.08} upper color={colors.mutedDark}>

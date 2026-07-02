@@ -9,6 +9,7 @@ import { SlashMark } from '../src/components/SlashMark';
 import { Txt } from '../src/components/Txt';
 import { colors } from '../src/theme';
 import { goBack } from '../src/lib/nav';
+import { useScreenPad } from '../src/lib/screenPad';
 
 // Run detail (canvas 10a): opens from the Run tile via long-press. The canvas
 // shows the watch-import variant; the source chip adapts to how the run was
@@ -30,6 +31,7 @@ export default function RunDetail() {
   const entries = useLogs((s) => s.entries);
   const units = useSettings((s) => s.units);
   const tombstone = useLogs((s) => s.tombstone);
+  const pad = useScreenPad();
 
   const entry = entries.find((e) => e.id === id && !e.deleted);
   if (!entry || entry.data.kind !== 'run') {
@@ -81,7 +83,7 @@ export default function RunDetail() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
-      <View style={{ flex: 1, paddingTop: 64, paddingHorizontal: 20, gap: 16 }}>
+      <View style={{ flex: 1, paddingTop: pad.top, paddingHorizontal: 20, gap: 16 }}>
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >
@@ -187,7 +189,7 @@ export default function RunDetail() {
           gap: 10,
           paddingTop: 12,
           paddingHorizontal: 20,
-          paddingBottom: 40,
+          paddingBottom: pad.bottom,
         }}
       >
         <Pressable98

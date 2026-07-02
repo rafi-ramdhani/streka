@@ -17,6 +17,8 @@ import {
 } from '@streka/core';
 import { useLogs, useSettings } from '../../src/core';
 import { useHealthToday } from '../../src/health';
+import { useScreenPad } from '../../src/lib/screenPad';
+import { useToday } from '../../src/lib/useToday';
 import { Pressable98 } from '../../src/components/Pressable98';
 import { Txt } from '../../src/components/Txt';
 import { colors } from '../../src/theme';
@@ -41,7 +43,8 @@ export default function Trends() {
   const units = useSettings((s) => s.units);
   const imperial = units === 'imperial';
   const [period, setPeriod] = useState<'week' | 'month'>('week');
-  const today = dayOf(Date.now());
+  const pad = useScreenPad();
+  const today = useToday();
   const weekStart = weekStartOf(today);
   const isWeek = period === 'week';
 
@@ -163,7 +166,12 @@ export default function Trends() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.appBg }}
-      contentContainerStyle={{ paddingTop: 64, paddingHorizontal: 20, gap: 14, paddingBottom: 20 }}
+      contentContainerStyle={{
+        paddingTop: pad.top,
+        paddingHorizontal: 20,
+        gap: 14,
+        paddingBottom: 20,
+      }}
     >
       <View
         style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}

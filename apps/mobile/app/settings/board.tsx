@@ -4,6 +4,7 @@ import { Pressable98 } from '../../src/components/Pressable98';
 import { SubHeader } from '../../src/components/SubHeader';
 import { Txt } from '../../src/components/Txt';
 import { TRACKER_OPTIONS } from '../../src/stores/onboarding';
+import { useScreenPad } from '../../src/lib/screenPad';
 import { colors } from '../../src/theme';
 
 // My board (Settings): the onboarding tracker grid, editing the live board.
@@ -11,11 +12,12 @@ import { colors } from '../../src/theme';
 export default function BoardSettings() {
   const settings = useSettings();
   const { width } = useWindowDimensions();
+  const pad = useScreenPad();
   const tileW = (width - 44 - 10) / 2;
   const pickedCount = Object.values(settings.picked).filter(Boolean).length;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.appBg, paddingTop: 64 }}>
+    <View style={{ flex: 1, backgroundColor: colors.appBg, paddingTop: pad.top }}>
       <View style={{ paddingHorizontal: 22, gap: 16 }}>
         <SubHeader title="My board" />
         <Txt size={13} w={600} color={colors.mutedDark}>

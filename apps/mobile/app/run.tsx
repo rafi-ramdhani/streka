@@ -17,6 +17,7 @@ import { formatDateLine } from '../src/lib/dates';
 import { useLocationRun } from '../src/run/useLocationRun';
 import { useGpsRun } from '../src/stores/gpsRun';
 import { goBack } from '../src/lib/nav';
+import { useScreenPad } from '../src/lib/screenPad';
 
 const PRIMER_BULLETS: { plain: string; bold: string; tail: string }[] = [
   {
@@ -38,9 +39,10 @@ const PRIMER_BULLETS: { plain: string; bold: string; tail: string }[] = [
 
 function Primer() {
   const run = useGpsRun();
+  const pad = useScreenPad();
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
-      <View style={{ flex: 1, paddingTop: 64, paddingHorizontal: 24, gap: 18 }}>
+      <View style={{ flex: 1, paddingTop: pad.top, paddingHorizontal: 24, gap: 18 }}>
         <View
           style={{
             width: 64,
@@ -93,7 +95,7 @@ function Primer() {
           ))}
         </View>
       </View>
-      <View style={{ paddingTop: 12, paddingHorizontal: 24, paddingBottom: 44, gap: 10 }}>
+      <View style={{ paddingTop: 12, paddingHorizontal: 24, paddingBottom: pad.bottom, gap: 10 }}>
         <BigButton
           label="ENABLE LOCATION"
           onPress={async () => {
@@ -142,6 +144,7 @@ function StatCard({ value, label }: { value: string; label: string }) {
 function Live() {
   const run = useGpsRun();
   const units = useSettings((s) => s.units);
+  const pad = useScreenPad();
   const [, setTick] = useState(0);
   useLocationRun(run.mode === 'live');
   // Foreground-only tracking until the background-location module lands
@@ -166,7 +169,7 @@ function Live() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
-      <View style={{ flex: 1, paddingTop: 64, paddingHorizontal: 24, gap: 18 }}>
+      <View style={{ flex: 1, paddingTop: pad.top, paddingHorizontal: 24, gap: 18 }}>
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >
@@ -247,7 +250,7 @@ function Live() {
           gap: 22,
           paddingTop: 14,
           paddingHorizontal: 24,
-          paddingBottom: 44,
+          paddingBottom: pad.bottom,
         }}
       >
         <Pressable98
@@ -302,6 +305,7 @@ function Live() {
 function Summary() {
   const run = useGpsRun();
   const units = useSettings((s) => s.units);
+  const pad = useScreenPad();
   const imperial = units === 'imperial';
   const dist = imperial ? kmToMi(run.sumKm) : run.sumKm;
   const paceSec = dist > 0 ? run.sumSec / dist : 0;
@@ -311,7 +315,7 @@ function Summary() {
       : '—';
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
-      <View style={{ flex: 1, paddingTop: 64, paddingHorizontal: 24, gap: 16 }}>
+      <View style={{ flex: 1, paddingTop: pad.top, paddingHorizontal: 24, gap: 16 }}>
         <Txt size={16} w={900}>
           Run complete
         </Txt>
@@ -382,7 +386,7 @@ function Summary() {
           </Txt>
         </View>
       </View>
-      <View style={{ paddingTop: 12, paddingHorizontal: 24, paddingBottom: 44 }}>
+      <View style={{ paddingTop: 12, paddingHorizontal: 24, paddingBottom: pad.bottom }}>
         <BigButton
           label="SAVE RUN"
           onPress={() => {

@@ -9,6 +9,7 @@ import { Txt } from '../src/components/Txt';
 import { useLogs } from '../src/core';
 import { useSession } from '../src/stores/session';
 import { goBack } from '../src/lib/nav';
+import { useScreenPad } from '../src/lib/screenPad';
 
 function fmtElapsed(startTs: number): string {
   const el = Math.max(0, Math.floor((Date.now() - startTs) / 1000));
@@ -19,6 +20,7 @@ function fmtElapsed(startTs: number): string {
 // next undone row flagged TAP WHEN DONE, saved set-by-set in the store.
 export default function Session() {
   const session = useSession();
+  const pad = useScreenPad();
   const [, setTick] = useState(0);
   const devStart = useLocalSearchParams<{ dev?: string }>().dev;
 
@@ -41,7 +43,7 @@ export default function Session() {
   const last = exercise ? lastTopSet(entries, exercise.name) : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.appBg, paddingTop: 64 }}>
+    <View style={{ flex: 1, backgroundColor: colors.appBg, paddingTop: pad.top }}>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, gap: 16 }}>
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
@@ -196,7 +198,7 @@ export default function Session() {
           gap: 10,
           paddingTop: 12,
           paddingHorizontal: 20,
-          paddingBottom: 40,
+          paddingBottom: pad.bottom,
         }}
       >
         <Pressable98

@@ -10,6 +10,7 @@ import { SlashMark } from '../src/components/SlashMark';
 import { Txt } from '../src/components/Txt';
 import { useFoodScan } from '../src/stores/foodScan';
 import { goBack } from '../src/lib/nav';
+import { useScreenPad } from '../src/lib/screenPad';
 
 // Fallback when there is no captured photo (no permission, no hardware, or
 // a dev-seeded scan). The kcal numbers stay mocked until the LLM backend
@@ -69,6 +70,7 @@ function Corner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
 
 function Camera() {
   const scan = useFoodScan();
+  const pad = useScreenPad();
   const camRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const live = permission?.granted === true;
@@ -114,7 +116,7 @@ function Camera() {
       <View
         style={{
           position: 'absolute',
-          top: 64,
+          top: pad.top,
           left: 0,
           right: 0,
           flexDirection: 'row',
@@ -191,7 +193,7 @@ function Camera() {
         </View>
       </View>
 
-      <View style={{ position: 'absolute', bottom: 150, left: 0, right: 0 }}>
+      <View style={{ position: 'absolute', bottom: pad.bottom + 110, left: 0, right: 0 }}>
         <Txt size={12.5} w={700} center color="rgba(255,255,255,.75)">
           Get the whole plate in frame — sides too
         </Txt>
@@ -199,7 +201,7 @@ function Camera() {
       <View
         style={{
           position: 'absolute',
-          bottom: 52,
+          bottom: pad.bottom + 12,
           left: 0,
           right: 0,
           flexDirection: 'row',
@@ -289,6 +291,7 @@ function Analyzing() {
 
 function Result() {
   const scan = useFoodScan();
+  const pad = useScreenPad();
   const total = scan.total();
   const ings = scan.ingredients();
 
@@ -315,7 +318,7 @@ function Result() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
-      <ScrollView contentContainerStyle={{ paddingTop: 64, paddingHorizontal: 20, gap: 13 }}>
+      <ScrollView contentContainerStyle={{ paddingTop: pad.top, paddingHorizontal: 20, gap: 13 }}>
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >
@@ -434,7 +437,7 @@ function Result() {
           gap: 10,
           paddingTop: 12,
           paddingHorizontal: 20,
-          paddingBottom: 40,
+          paddingBottom: pad.bottom,
         }}
       >
         <Pressable98
@@ -476,9 +479,10 @@ function Result() {
 
 function Unsure() {
   const scan = useFoodScan();
+  const pad = useScreenPad();
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
-      <View style={{ flex: 1, paddingTop: 64, paddingHorizontal: 20, gap: 14 }}>
+      <View style={{ flex: 1, paddingTop: pad.top, paddingHorizontal: 20, gap: 14 }}>
         <View
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
         >

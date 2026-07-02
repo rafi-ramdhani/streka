@@ -5,6 +5,7 @@ import { ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useLogs, useSettings, useSync } from '../../src/core';
 import { healthAppName, requestHealthPermissions } from '../../src/health';
+import { useScreenPad } from '../../src/lib/screenPad';
 import { BigButton } from '../../src/components/BigButton';
 import { LogSheet } from '../../src/components/LogSheet';
 import { Pressable98 } from '../../src/components/Pressable98';
@@ -86,6 +87,7 @@ export default function Settings() {
   const settings = useSettings();
   const online = useSync((s) => s.online);
   const entries = useLogs((s) => s.entries);
+  const pad = useScreenPad();
   const [timeSheet, setTimeSheet] = useState(false);
   const [draftTime, setDraftTime] = useState(() => {
     const [h = 17, m = 30] = settings.nudge.time.split(':').map(Number);
@@ -134,7 +136,12 @@ export default function Settings() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.appBg }}
-      contentContainerStyle={{ paddingTop: 64, paddingHorizontal: 20, gap: 14, paddingBottom: 30 }}
+      contentContainerStyle={{
+        paddingTop: pad.top,
+        paddingHorizontal: 20,
+        gap: 14,
+        paddingBottom: 30,
+      }}
     >
       <View
         style={{

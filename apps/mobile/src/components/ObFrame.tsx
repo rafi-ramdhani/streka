@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { colors } from '../theme';
+import { useScreenPad } from '../lib/screenPad';
 import { ProgressSegments } from './ProgressSegments';
 import { Txt } from './Txt';
 
@@ -19,9 +20,10 @@ export function ObFrame({
   children: ReactNode;
   footer: ReactNode;
 }) {
+  const pad = useScreenPad();
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
-      <View style={{ flex: 1, paddingTop: 64, paddingHorizontal: 22, gap: 16 }}>
+      <View style={{ flex: 1, paddingTop: pad.top, paddingHorizontal: 22, gap: 16 }}>
         <ProgressSegments total={5} filled={step} />
         <View>
           <Txt size={28} w={900} ls={-0.02} lineHeight={1.1}>
@@ -33,7 +35,7 @@ export function ObFrame({
         </View>
         {children}
       </View>
-      <View style={{ paddingTop: 12, paddingHorizontal: 22, paddingBottom: 40, gap: 10 }}>
+      <View style={{ paddingTop: 12, paddingHorizontal: 22, paddingBottom: pad.bottom, gap: 10 }}>
         {footer}
       </View>
     </View>

@@ -1,5 +1,6 @@
-import { Redirect, Tabs } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Redirect, Tabs, router, usePathname } from 'expo-router';
+import { useEffect } from 'react';
+import { BackHandler, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettings } from '../../src/core';
 import { colors, fonts } from '../../src/theme';
@@ -69,8 +70,24 @@ function TabBar({ state, navigation }: TabBarProps) {
   );
 }
 
+// Android back inside the tabs: any non-Board tab returns to the Board
+// first; from the Board the system default applies (exit the app).
+function useBoardFirstBack() {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (pathname === '/') return false;
+      router.navigate('/');
+      return true;
+    });
+    return () => sub.remove();
+  }, [pathname]);
+}
+
 export default function TabsLayout() {
   const onboarded = useSettings((s) => s.onboarded);
+  useBoardFirstBack();
   if (!onboarded) return <Redirect href="/onboarding/welcome" />;
 
   return (

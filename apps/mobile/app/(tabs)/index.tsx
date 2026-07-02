@@ -15,6 +15,8 @@ import {
 import { isDemoData } from '@streka/core';
 import { logActivity, useLogs, useSettings } from '../../src/core';
 import { healthAppName, useHealthToday } from '../../src/health';
+import { useScreenPad } from '../../src/lib/screenPad';
+import { useToday } from '../../src/lib/useToday';
 import { CoachMark } from '../../src/components/CoachMark';
 import { SlashMark } from '../../src/components/SlashMark';
 import { StreakChip } from '../../src/components/StreakChip';
@@ -71,7 +73,7 @@ export default function Board() {
     if (params.sheet && params.sheet in SHEET_TITLES) setSheet(params.sheet as SheetName);
   }, [params.sheet]);
 
-  const today = dayOf(Date.now());
+  const today = useToday();
   const board = useMemo(() => todayBoard(entries, today), [entries, today]);
   const streakN = useMemo(() => streak(intentionalDays(entries), today), [entries, today]);
   // Fresh = no history before today (day-1 board copy).
@@ -80,6 +82,7 @@ export default function Board() {
   // see invented numbers.
   const demo = useMemo(() => isDemoData(entries), [entries]);
   const health = useHealthToday();
+  const pad = useScreenPad();
 
   const half = (width - 36 - 10) / 2;
   const full = width - 36;
@@ -149,7 +152,7 @@ export default function Board() {
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: 64, paddingHorizontal: 18, gap: 14 }}
+        contentContainerStyle={{ paddingTop: pad.top, paddingHorizontal: 18, gap: 14 }}
       >
         <View
           style={{
