@@ -16,6 +16,9 @@ export interface WorkoutData {
   kind: 'workout';
   name: string;
   mins: number;
+  // Per-exercise summary of what was completed, e.g. the top set label.
+  // Feeds "last: <weekday> · <template>" hints and the bests card.
+  exercises?: { name: string; topSet?: string }[];
 }
 export interface MealData {
   kind: 'meal';

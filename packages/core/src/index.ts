@@ -9,5 +9,6 @@ export * from './repo';
 export * from './schema';
 export * from './store';
 export * from './units';
+export * from './workouts';
 export * from './services';
 export * from './seed';
