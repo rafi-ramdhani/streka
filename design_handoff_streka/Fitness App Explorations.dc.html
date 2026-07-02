@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#eceee9;font-family:'Archivo',system-ui,sans-serif}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#131712;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 'Archivo',sans-serif;color:#131712}.dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px;max-width:420px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#131712;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:600 12px/1.3 'Archivo',sans-serif;color:#131712}.dv-note{font:400 11.5px/1.5 'Archivo',sans-serif;color:rgba(0,0,0,.55);margin:0;max-width:400px}.dv-opt:target .dv-oid{background:#17c25f;color:#fff}.dv-next{margin:26px 0 0;font:12px/1.5 'Archivo',sans-serif;color:rgba(0,0,0,.5)}.dv-intro{max-width:720px;font:400 12.5px/1.6 'Archivo',sans-serif;color:rgba(0,0,0,.6);margin:0 0 26px}</style>
+</helmet>
+
+<section class="dv-turn" id="t12">
+  <div class="dv-thd"><a class="dv-tid" href="#t12">12</a><span class="dv-tname">Scan your food — LLM reads the plate: calories + ingredients</span></div>
+  <p class="dv-intro">Camera → one shot → the model names the dish, lists ingredients with per-item kcal, and gives a <b style="color:#131712">range, not a fake-precise number</b>. Every ingredient is editable (tap to remove, portion resizes everything). When the model isn't sure (<a class="dv-oid" href="#12c">12c</a>) it says so and offers closest matches — never a silent wrong guess. Quick S/M/L estimates stay as the no-camera fallback.</p>
+  <div class="dv-opts">
+
+    <!-- 12a camera -->
+    <div class="dv-opt" id="12a">
+      <div class="dv-olabel"><a class="dv-oid" href="#12a">12a</a>Scan — one shot of the plate</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#0a0d09;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;position:relative;overflow:hidden">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,#181d17,#181d17 12px,#1d231c 12px,#1d231c 24px)"></div>
+            <div style="position:absolute;top:64px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:8px 20px">
+              <div style="font-size:13px;font-weight:800;background:rgba(10,13,9,.7);border-radius:10px;padding:8px 14px">Cancel</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#3fe07f;background:rgba(10,13,9,.7);border-radius:999px;padding:7px 13px"><svg width="11" height="11" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#3fe07f" transform="rotate(32 23 23)"></rect></svg>Scan food</div>
+            </div>
+            <!-- framing corners -->
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-54%);width:270px;height:270px">
+              <div style="position:absolute;top:0;left:0;width:34px;height:34px;border-top:3.5px solid #3fe07f;border-left:3.5px solid #3fe07f;border-radius:10px 0 0 0"></div>
+              <div style="position:absolute;top:0;right:0;width:34px;height:34px;border-top:3.5px solid #3fe07f;border-right:3.5px solid #3fe07f;border-radius:0 10px 0 0"></div>
+              <div style="position:absolute;bottom:0;left:0;width:34px;height:34px;border-bottom:3.5px solid #3fe07f;border-left:3.5px solid #3fe07f;border-radius:0 0 0 10px"></div>
+              <div style="position:absolute;bottom:0;right:0;width:34px;height:34px;border-bottom:3.5px solid #3fe07f;border-right:3.5px solid #3fe07f;border-radius:0 0 10px 0"></div>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.06em;color:#8a938a;background:rgba(10,13,9,.75);border-radius:8px;padding:8px 14px">camera · your plate</div></div>
+            </div>
+            <div style="position:absolute;bottom:150px;left:0;right:0;text-align:center;font-size:12.5px;font-weight:700;color:rgba(255,255,255,.75)">Get the whole plate in frame — sides too</div>
+            <!-- shutter -->
+            <div style="position:absolute;bottom:52px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:34px">
+              <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#c7cec6;text-align:center;line-height:1.2">FROM<br>PHOTOS</div>
+              <div style="width:76px;height:76px;border-radius:50%;border:5px solid #fff;display:flex;align-items:center;justify-content:center"><div style="width:58px;height:58px;border-radius:50%;background:#17c25f"></div></div>
+              <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:#c7cec6;text-align:center;line-height:1.2">TYPE<br>INSTEAD</div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 12b result -->
+    <div class="dv-opt" id="12b">
+      <div class="dv-olabel"><a class="dv-oid" href="#12b">12b</a>Result — a range you can correct</div>
+      <p class="dv-note">Dish name + kcal range up top, ingredients as removable rows (each re-totals the range). Portion segmented control scales everything. The "AI estimate" chip never disappears — honesty is the feature.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:10px">
+                <svg width="9" height="16" viewBox="0 0 9 16"><path d="M8 1L1 8l7 7" stroke="#8a938a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <div style="font-size:16px;font-weight:900">Scan result</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;background:rgba(23,194,95,.15);border-radius:999px;padding:5px 11px;font-size:10.5px;font-weight:800;color:#3fe07f">AI ESTIMATE · ±20%</div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:center">
+              <div style="flex:none;width:72px;height:72px;border-radius:16px;background:repeating-linear-gradient(45deg,#1d231c,#1d231c 8px,#212822 8px,#212822 16px);display:flex;align-items:center;justify-content:center"><span style="font:600 8.5px ui-monospace,Menlo,monospace;color:#8a938a">photo</span></div>
+              <div>
+                <div style="font-size:21px;font-weight:900;line-height:1.1">Chicken fried rice</div>
+                <div style="display:flex;align-items:baseline;gap:7px;margin-top:4px">
+                  <div style="font-size:28px;font-weight:900;color:#3fe07f">540–660</div>
+                  <div style="font-size:13px;font-weight:700;color:#8a938a">kcal</div>
+                </div>
+              </div>
+            </div>
+            <!-- portion -->
+            <div style="display:flex;background:#1d231c;border-radius:999px;padding:3px">
+              <div style="flex:1;text-align:center;padding:9px;border-radius:999px;font-size:12.5px;font-weight:800;color:#8a938a">Small</div>
+              <div style="flex:1;text-align:center;padding:9px;border-radius:999px;background:#17c25f;color:#0b1c10;font-size:12.5px;font-weight:800">Medium</div>
+              <div style="flex:1;text-align:center;padding:9px;border-radius:999px;font-size:12.5px;font-weight:800;color:#8a938a">Large</div>
+            </div>
+            <!-- ingredients -->
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">What the model sees</div><div style="font-size:11px;font-weight:700;color:#8a938a">tap to remove</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:14px;font-weight:800">Rice, fried</div><div style="font-size:12.5px;font-weight:800;color:#8a938a">~280 kcal</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:14px;font-weight:800">Chicken thigh</div><div style="font-size:12.5px;font-weight:800;color:#8a938a">~180 kcal</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:14px;font-weight:800">Egg</div><div style="font-size:12.5px;font-weight:800;color:#8a938a">~70 kcal</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;opacity:.55"><div style="font-size:14px;font-weight:800;text-decoration:line-through">Spring onion oil</div><div style="font-size:12.5px;font-weight:800;color:#8a938a">removed</div></div>
+              <div style="border:1.5px dashed rgba(255,255,255,.22);border-radius:16px;padding:12px;text-align:center;font-size:12.5px;font-weight:800;color:#8a938a">+ Add ingredient</div>
+            </div>
+          </div>
+          <div style="padding:12px 20px 40px;display:flex;gap:10px">
+            <div style="flex:none;padding:15px 18px;border-radius:16px;background:rgba(255,255,255,.08);font-size:14px;font-weight:800;color:#8a938a">Retake</div>
+            <div style="flex:1;text-align:center;padding:15px;border-radius:16px;background:#17c25f;color:#0b1c10;font-size:14px;font-weight:900;letter-spacing:.02em">LOG ~600 KCAL</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 12c unsure -->
+    <div class="dv-opt" id="12c">
+      <div class="dv-olabel"><a class="dv-oid" href="#12c">12c</a>Low confidence — say so, offer matches</div>
+      <p class="dv-note">Below the confidence bar the model never auto-fills. Three closest matches, one tap each; manual entry always at the bottom. A wrong guess silently logged would poison the data and the trust.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:10px">
+                <svg width="9" height="16" viewBox="0 0 9 16"><path d="M8 1L1 8l7 7" stroke="#8a938a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <div style="font-size:16px;font-weight:900">Scan result</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;background:rgba(255,183,77,.15);border-radius:999px;padding:5px 11px;font-size:10.5px;font-weight:800;color:#ffb74d">NOT SURE</div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:center">
+              <div style="flex:none;width:72px;height:72px;border-radius:16px;background:repeating-linear-gradient(45deg,#1d231c,#1d231c 8px,#212822 8px,#212822 16px);display:flex;align-items:center;justify-content:center"><span style="font:600 8.5px ui-monospace,Menlo,monospace;color:#8a938a">photo</span></div>
+              <div style="font-size:15px;font-weight:700;line-height:1.4;color:#c7cec6">Hard to tell from this angle — a stew, a curry, maybe a soup. Pick the closest:</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:#1d231c;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:14.5px;font-weight:800">Beef stew</div><div style="font-size:11px;font-weight:600;color:#8a938a;margin-top:1px">most likely</div></div><div style="font-size:12.5px;font-weight:800;color:#3fe07f">~450 kcal</div></div>
+              <div style="background:#1d231c;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:14.5px;font-weight:800">Chicken curry</div><div style="font-size:12.5px;font-weight:800;color:#8a938a">~520 kcal</div></div>
+              <div style="background:#1d231c;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:14.5px;font-weight:800">Lentil soup</div><div style="font-size:12.5px;font-weight:800;color:#8a938a">~310 kcal</div></div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;border:1.5px dashed rgba(255,255,255,.25);border-radius:16px;padding:13px;text-align:center;font-size:13px;font-weight:800">Retake photo</div>
+              <div style="flex:1;border:1.5px dashed rgba(255,255,255,.25);border-radius:16px;padding:13px;text-align:center;font-size:13px;font-weight:800">Type it in</div>
+            </div>
+            <div style="font-size:11.5px;font-weight:600;color:#6b736b;line-height:1.5;text-align:center">Scanning needs a registered account and a connection — offline, quick S/M/L estimates still work.</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "wire food scan into the prototype" · "handoff package" · "riff on the result layout"</p>
+</section>
+
+<section class="dv-turn" id="t11">
+  <div class="dv-thd"><a class="dv-tid" href="#t11">11</a><span class="dv-tname">Live GPS runs — now v1: permission primer, live tracking, paused</span></div>
+  <p class="dv-intro">Three screens the GPS decision adds. The primer (<a class="dv-oid" href="#11a">11a</a>) earns the scary "Always Allow" permission before the OS asks. The live screen (<a class="dv-oid" href="#11b">11b</a>) is glanceable at arm's length — huge numbers, three controls. Auto-pause (<a class="dv-oid" href="#11c">11c</a>) handles traffic lights without a tap. Finishing lands on the run summary (<a class="dv-oid" href="#10a">10a</a>).</p>
+  <div class="dv-opts">
+
+    <!-- 11a permission primer -->
+    <div class="dv-opt" id="11a">
+      <div class="dv-olabel"><a class="dv-oid" href="#11a">11a</a>Permission primer — before the OS dialog</div>
+      <p class="dv-note">Shown once, on first "Start GPS run". Explains background location honestly; the watch remains an out.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 24px 0;display:flex;flex-direction:column;gap:18px">
+            <div style="width:64px;height:64px;border-radius:20px;background:rgba(23,194,95,.15);display:flex;align-items:center;justify-content:center;margin-top:20px">
+              <div style="width:26px;height:26px;border-radius:50%;border:4px solid #3fe07f;box-sizing:border-box;position:relative"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;border-radius:50%;background:#3fe07f"></div></div>
+            </div>
+            <div style="font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.12">Where you run<br>stays yours</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;gap:12px;align-items:flex-start">
+                <svg width="13" height="10" viewBox="0 0 13 10" style="margin-top:4px;flex:none"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg>
+                <div style="font-size:13.5px;font-weight:600;line-height:1.5;color:#c7cec6">Your route is recorded <b style="color:#fff">on this phone</b> — it only syncs to your account, never anywhere else.</div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-start">
+                <svg width="13" height="10" viewBox="0 0 13 10" style="margin-top:4px;flex:none"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg>
+                <div style="font-size:13.5px;font-weight:600;line-height:1.5;color:#c7cec6">iOS will ask for <b style="color:#fff">"Always Allow"</b> — that's what keeps tracking alive when your screen is off mid-run.</div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-start">
+                <svg width="13" height="10" viewBox="0 0 13 10" style="margin-top:4px;flex:none"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg>
+                <div style="font-size:13.5px;font-weight:600;line-height:1.5;color:#c7cec6">GPS runs only while a run is live. <b style="color:#fff">No tracking between runs</b>, no meaningful battery cost the rest of the day.</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:12px 24px 44px;display:flex;flex-direction:column;gap:10px">
+            <div style="text-align:center;padding:16px;border-radius:16px;background:#17c25f;color:#0b1c10;font-size:14px;font-weight:900;letter-spacing:.02em">ENABLE LOCATION</div>
+            <div style="text-align:center;padding:8px;font-size:12.5px;font-weight:700;color:#8a938a">Not now — I'll track runs with my watch</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 11b live run -->
+    <div class="dv-opt" id="11b">
+      <div class="dv-olabel"><a class="dv-oid" href="#11b">11b</a>Live run — glanceable at arm's length</div>
+      <p class="dv-note">Distance owns the screen. Pace + heart rate (from watch, if worn) second tier. Three controls, all thumb-size; End requires a hold so it can't be fat-fingered.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 24px 0;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#3fe07f"><div style="width:7px;height:7px;border-radius:50%;background:#17c25f"></div>GPS · strong</div>
+              <div style="font-size:11px;font-weight:700;color:#8a938a">auto-pause on</div>
+            </div>
+            <div style="text-align:center;padding-top:12px">
+              <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a938a">distance</div>
+              <div style="display:flex;align-items:baseline;justify-content:center;gap:8px">
+                <div style="font-size:96px;font-weight:900;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums">2.84</div>
+                <div style="font-size:20px;font-weight:800;color:#8a938a">km</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">
+              <div style="background:#1d231c;border-radius:16px;padding:14px 8px"><div style="font-size:22px;font-weight:900;font-variant-numeric:tabular-nums">18:12</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">time</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:14px 8px"><div style="font-size:22px;font-weight:900;font-variant-numeric:tabular-nums">6:24</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">pace / km</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:14px 8px"><div style="font-size:22px;font-weight:900;font-variant-numeric:tabular-nums">148</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">bpm · watch</div></div>
+            </div>
+            <div style="flex:1;min-height:120px;border-radius:20px;overflow:hidden;position:relative;background:repeating-linear-gradient(45deg,#1d231c,#1d231c 10px,#212822 10px,#212822 20px);display:flex;align-items:center;justify-content:center">
+              <div style="font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.06em;color:#8a938a;background:rgba(19,23,18,.85);border-radius:8px;padding:8px 14px">live route · follows you</div>
+            </div>
+          </div>
+          <div style="padding:14px 24px 44px;display:flex;align-items:center;justify-content:center;gap:22px">
+            <div style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center"><svg width="16" height="18" viewBox="0 0 16 18"><rect x="1" y="3" width="4" height="12" rx="1.5" fill="#8a938a"></rect><rect x="11" y="3" width="4" height="12" rx="1.5" fill="#8a938a"></rect></svg></div>
+            <div style="width:84px;height:84px;border-radius:50%;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(23,194,95,.4)"><svg width="24" height="26" viewBox="0 0 16 18"><rect x="1" y="2" width="5" height="14" rx="2" fill="#0b1c10"></rect><rect x="10" y="2" width="5" height="14" rx="2" fill="#0b1c10"></rect></svg></div>
+            <div style="width:58px;height:58px;border-radius:50%;background:rgba(224,101,79,.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#e0654f;text-align:center;line-height:1.2">HOLD<br>TO END</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 11c auto-paused -->
+    <div class="dv-opt" id="11c">
+      <div class="dv-olabel"><a class="dv-oid" href="#11c">11c</a>Auto-paused — traffic light, no tap needed</div>
+      <p class="dv-note">Stats freeze and dim, the state announces itself. Movement resumes the clock automatically; the big button forces it manually.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 24px 0;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#3fe07f"><div style="width:7px;height:7px;border-radius:50%;background:#17c25f"></div>GPS · strong</div>
+              <div style="display:flex;align-items:center;gap:6px;background:rgba(255,183,77,.15);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:800;color:#ffb74d">AUTO-PAUSED — you stopped moving</div>
+            </div>
+            <div style="text-align:center;padding-top:12px;opacity:.5">
+              <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a938a">distance</div>
+              <div style="display:flex;align-items:baseline;justify-content:center;gap:8px">
+                <div style="font-size:96px;font-weight:900;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums">2.84</div>
+                <div style="font-size:20px;font-weight:800;color:#8a938a">km</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;opacity:.5">
+              <div style="background:#1d231c;border-radius:16px;padding:14px 8px"><div style="font-size:22px;font-weight:900;font-variant-numeric:tabular-nums">18:12</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">time</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:14px 8px"><div style="font-size:22px;font-weight:900;font-variant-numeric:tabular-nums">—</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">pace / km</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:14px 8px"><div style="font-size:22px;font-weight:900;font-variant-numeric:tabular-nums">121</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">bpm · watch</div></div>
+            </div>
+            <div style="flex:1;min-height:120px;border-radius:20px;overflow:hidden;position:relative;background:repeating-linear-gradient(45deg,#1d231c,#1d231c 10px,#212822 10px,#212822 20px);display:flex;align-items:center;justify-content:center;opacity:.6">
+              <div style="font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.06em;color:#8a938a;background:rgba(19,23,18,.85);border-radius:8px;padding:8px 14px">route · paused here</div>
+            </div>
+          </div>
+          <div style="padding:14px 24px 44px;display:flex;align-items:center;justify-content:center;gap:22px">
+            <div style="width:84px;height:84px;border-radius:50%;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(23,194,95,.4)"><svg width="26" height="28" viewBox="0 0 14 16"><path d="M2 1l11 7-11 7V1z" fill="#0b1c10"></path></svg></div>
+            <div style="width:58px;height:58px;border-radius:50%;background:rgba(224,101,79,.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#e0654f;text-align:center;line-height:1.2">HOLD<br>TO END</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "wire GPS runs into the prototype" · "handoff package for Claude Code" · "the run summary (<a class="dv-oid" href="#10a">10a</a>) after a GPS run"</p>
+</section>
+
+<section class="dv-turn" id="t10">
+  <div class="dv-thd"><a class="dv-tid" href="#t10">10</a><span class="dv-tname">Missing screens, v1 scope — run summary (watch import, no live GPS), settings, honest empty states</span></div>
+  <p class="dv-intro">Per the v1 decision: runs come from the watch via Health, phone GPS deferred to v2. The run summary celebrates the result, not the telemetry. Settings is one screen — everything set in onboarding is editable here. Empty Trends tells the truth kindly instead of showing fake charts.</p>
+  <div class="dv-opts">
+
+    <!-- 10a run summary -->
+    <div class="dv-opt" id="10a">
+      <div class="dv-olabel"><a class="dv-oid" href="#10a">10a</a>Run summary — imported from watch</div>
+      <p class="dv-note">Opens from the Run tile or the sync notification. Map is real GPS data from the watch, rendered as a route — placeholder here.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:10px">
+                <svg width="9" height="16" viewBox="0 0 9 16"><path d="M8 1L1 8l7 7" stroke="#8a938a" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <div style="font-size:16px;font-weight:900">Morning run</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#8a938a"><div style="width:14px;height:14px;border-radius:4px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><div style="width:6px;height:6px;border-radius:50%;border:1.5px solid #3fe07f;box-sizing:border-box"></div></div>Apple Watch</div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a">Thu, Jul 2 · 7:04 – 7:31</div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px">
+                <div style="font-size:64px;font-weight:900;letter-spacing:-.03em;line-height:1">4.21</div>
+                <div style="font-size:18px;font-weight:800;color:#8a938a">km</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div style="background:#1d231c;border-radius:16px;padding:13px 14px"><div style="font-size:19px;font-weight:900">26:41</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">time</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:13px 14px"><div style="font-size:19px;font-weight:900">6:20</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">min / km</div></div>
+              <div style="background:#1d231c;border-radius:16px;padding:13px 14px"><div style="font-size:19px;font-weight:900">312</div><div style="font-size:10.5px;font-weight:700;color:#8a938a">kcal</div></div>
+            </div>
+            <!-- route placeholder -->
+            <div style="flex:1;min-height:180px;border-radius:20px;overflow:hidden;position:relative;background:repeating-linear-gradient(45deg,#1d231c,#1d231c 10px,#212822 10px,#212822 20px);display:flex;align-items:center;justify-content:center">
+              <div style="font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.06em;color:#8a938a;background:rgba(19,23,18,.85);border-radius:8px;padding:8px 14px">route map · GPS from watch</div>
+            </div>
+            <div style="background:rgba(23,194,95,.12);border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:11px">
+              <svg width="14" height="14" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#3fe07f" transform="rotate(32 23 23)"></rect></svg>
+              <div style="font-size:12.5px;font-weight:700;color:#3fe07f">Counted for Thu, Jul 2 — streak day 12</div>
+            </div>
+          </div>
+          <div style="padding:12px 20px 40px;display:flex;gap:10px">
+            <div style="flex:1;text-align:center;padding:13px;border-radius:14px;background:rgba(255,255,255,.08);font-size:13px;font-weight:800;color:#8a938a">Edit</div>
+            <div style="flex:1;text-align:center;padding:13px;border-radius:14px;background:rgba(255,255,255,.08);font-size:13px;font-weight:800;color:#8a938a">Delete</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 10b settings -->
+    <div class="dv-opt" id="10b">
+      <div class="dv-olabel"><a class="dv-oid" href="#10b">10b</a>Settings — everything from onboarding, editable</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:14px;padding:4px 0 6px">
+              <div style="width:54px;height:54px;border-radius:50%;background:#d8e4d6;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;color:#3a4a3a">JT</div>
+              <div>
+                <div style="font-size:19px;font-weight:900">Jamie T.</div>
+                <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:#3fe07f;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:#17c25f"></div>Account synced · jamie@example.com</div>
+              </div>
+            </div>
+            <div style="background:#1d231c;border-radius:20px;overflow:hidden">
+              <div style="padding:15px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)">
+                <div style="font-size:14px;font-weight:800">My board</div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#8a938a">5 trackers <svg width="7" height="12" viewBox="0 0 7 12"><path d="M1 1l5 5-5 5" stroke="#6b736b" stroke-width="2" fill="none" stroke-linecap="round"></path></svg></div>
+              </div>
+              <div style="padding:15px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)">
+                <div style="font-size:14px;font-weight:800">Weekly rhythm</div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#8a938a">3 active days <svg width="7" height="12" viewBox="0 0 7 12"><path d="M1 1l5 5-5 5" stroke="#6b736b" stroke-width="2" fill="none" stroke-linecap="round"></path></svg></div>
+              </div>
+              <div style="padding:15px 16px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:14px;font-weight:800">Nudge</div><div style="font-size:11px;font-weight:600;color:#8a938a;margin-top:1px">Days you haven't logged · 17:30</div></div>
+                <div style="width:40px;height:24px;border-radius:12px;background:#17c25f;position:relative"><div style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div>
+              </div>
+            </div>
+            <div style="background:#1d231c;border-radius:20px;overflow:hidden">
+              <div style="padding:15px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)">
+                <div><div style="font-size:14px;font-weight:800">Apple Health</div><div style="font-size:11px;font-weight:600;color:#3fe07f;margin-top:1px">Connected · steps, sleep, runs</div></div>
+                <svg width="7" height="12" viewBox="0 0 7 12"><path d="M1 1l5 5-5 5" stroke="#6b736b" stroke-width="2" fill="none" stroke-linecap="round"></path></svg>
+              </div>
+              <div style="padding:15px 16px;display:flex;justify-content:space-between;align-items:center">
+                <div style="font-size:14px;font-weight:800">Units</div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#8a938a">kg · km <svg width="7" height="12" viewBox="0 0 7 12"><path d="M1 1l5 5-5 5" stroke="#6b736b" stroke-width="2" fill="none" stroke-linecap="round"></path></svg></div>
+              </div>
+            </div>
+            <div style="background:#1d231c;border-radius:20px;overflow:hidden">
+              <div style="padding:15px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)">
+                <div><div style="font-size:14px;font-weight:800">Export my data</div><div style="font-size:11px;font-weight:600;color:#8a938a;margin-top:1px">Everything as CSV — it's yours</div></div>
+                <svg width="7" height="12" viewBox="0 0 7 12"><path d="M1 1l5 5-5 5" stroke="#6b736b" stroke-width="2" fill="none" stroke-linecap="round"></path></svg>
+              </div>
+              <div style="padding:15px 16px"><div style="font-size:14px;font-weight:800;color:#e0654f">Sign out</div><div style="font-size:11px;font-weight:600;color:#8a938a;margin-top:1px">Your data stays on this phone and in your account</div></div>
+            </div>
+            <div style="text-align:center;font-size:10.5px;font-weight:600;color:#4a544a;padding:2px 0 10px">Streka 1.0 · made for keeping up</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;background:#fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 10c empty trends -->
+    <div class="dv-opt" id="10c">
+      <div class="dv-olabel"><a class="dv-oid" href="#10c">10c</a>Empty Trends — day 2, honest and kind</div>
+      <p class="dv-note">No fake charts. Each card states what it needs and shows the two real days that exist. The one full card (steps, auto) proves the tab works.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div style="font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.05">Trends</div>
+              <div style="display:flex;background:#1d231c;border-radius:999px;padding:3px">
+                <div style="padding:6px 14px;border-radius:999px;background:#17c25f;color:#0b1c10;font-size:12px;font-weight:800">Week</div>
+                <div style="padding:6px 14px;font-size:12px;font-weight:700;color:#8a938a">Month</div>
+              </div>
+            </div>
+            <div style="background:#1d231c;border-radius:22px;padding:18px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Active days</div><div style="font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1.1">2<span style="font-size:20px;color:#8a938a;font-weight:700"> / 7</span></div></div>
+                <div style="font-size:12px;font-weight:800;color:#3fe07f">week 1 — go</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:14px;align-items:flex-end;height:64px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%"><div style="width:100%;height:34px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#8a938a">M</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%"><div style="width:100%;height:48px;border-radius:6px;background:#17c25f;box-shadow:0 0 0 2px rgba(63,224,127,.4)"></div><span style="font-size:10px;font-weight:800;color:#fff">T</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%"><div style="width:100%;height:8px;border-radius:6px;border:1.5px dashed rgba(255,255,255,.2);box-sizing:border-box"></div><span style="font-size:10px;font-weight:700;color:#4a544a">W</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%"><div style="width:100%;height:8px;border-radius:6px;border:1.5px dashed rgba(255,255,255,.2);box-sizing:border-box"></div><span style="font-size:10px;font-weight:700;color:#4a544a">T</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%"><div style="width:100%;height:8px;border-radius:6px;border:1.5px dashed rgba(255,255,255,.2);box-sizing:border-box"></div><span style="font-size:10px;font-weight:700;color:#4a544a">F</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%"><div style="width:100%;height:8px;border-radius:6px;border:1.5px dashed rgba(255,255,255,.2);box-sizing:border-box"></div><span style="font-size:10px;font-weight:700;color:#4a544a">S</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:flex-end;height:100%"><div style="width:100%;height:8px;border-radius:6px;border:1.5px dashed rgba(255,255,255,.2);box-sizing:border-box"></div><span style="font-size:10px;font-weight:700;color:#4a544a">S</span></div>
+              </div>
+            </div>
+            <div style="background:#1d231c;border-radius:22px;padding:18px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Weight</div>
+              <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
+                <div style="flex:1;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.25) 0 8px,transparent 8px 16px)"></div>
+              </div>
+              <div style="font-size:12.5px;font-weight:600;color:#8a938a;margin-top:12px;line-height:1.5">One entry so far (72.4 kg). Log it again in a few days and the trend line starts here.</div>
+            </div>
+            <div style="background:#1d231c;border-radius:22px;padding:18px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Bests</div>
+              <div style="font-size:12.5px;font-weight:600;color:#8a938a;margin-top:10px;line-height:1.5">Your first bench press, longest run and best step day will land here. Charts get good after a week — you're 2 days in.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;background:#fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "wire the run summary into the prototype" · "handoff package for Claude Code" · "adaptive icon spec for Android"</p>
+</section>
+
+<section class="dv-turn" id="t9">
+  <div class="dv-thd"><a class="dv-tid" href="#t9">9</a><span class="dv-tname">Onboarding flow — read left to right</span></div>
+  <p class="dv-intro">Principles: <b style="color:#131712">no account wall</b> (offline-first — the app works instantly, sync is a pitch not a gate), <b style="color:#131712">picking trackers builds your board</b> (setup IS the product), and <b style="color:#131712">kind defaults</b> (3 days/week, not 7). Health/watch connect is one screen, skippable. Six screens, under a minute.</p>
+  <div class="dv-opts">
+
+    <!-- 9a welcome -->
+    <div class="dv-opt" id="9a">
+      <div class="dv-olabel"><a class="dv-oid" href="#9a">9a</a>1 · Welcome</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#17c25f;font-family:'Archivo',sans-serif;color:#0b1c10;padding:0 28px;box-sizing:border-box">
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px">
+            <svg width="76" height="76" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+            <div style="font:900 italic 40px/1 'Archivo';letter-spacing:-.03em">STREKA</div>
+            <div style="font-size:30px;font-weight:900;letter-spacing:-.02em;line-height:1.15">One slash a day.<br>That's the whole app.</div>
+            <div style="font-size:14px;font-weight:600;line-height:1.5;color:rgba(11,28,16,.7)">Log anything — a workout, a meal, a swim — and the day counts. Works offline, no account needed.</div>
+          </div>
+          <div style="padding-bottom:52px;display:flex;flex-direction:column;gap:10px">
+            <div style="text-align:center;padding:16px;border-radius:16px;background:#0b1c10;color:#fff;font-size:14px;font-weight:900;letter-spacing:.02em">GET STARTED</div>
+            <div style="text-align:center;padding:10px;font-size:12.5px;font-weight:700;color:rgba(11,28,16,.6)">I already have an account</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 9b pick trackers -->
+    <div class="dv-opt" id="9b">
+      <div class="dv-olabel"><a class="dv-oid" href="#9b">9b</a>2 · Pick trackers — builds the board</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 22px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;gap:5px">
+              <div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.15)"></div><div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.15)"></div><div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.15)"></div>
+            </div>
+            <div>
+              <div style="font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.1">What do you want<br>to keep up?</div>
+              <div style="font-size:13px;font-weight:600;color:#8a938a;margin-top:8px">These become your board. Change anytime.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="background:rgba(23,194,95,.15);border:1.5px solid #17c25f;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900">Workouts</div><div style="font-size:11px;font-weight:600;color:#3fe07f;margin-top:2px">selected ✓</div></div>
+              <div style="background:rgba(23,194,95,.15);border:1.5px solid #17c25f;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900">Running</div><div style="font-size:11px;font-weight:600;color:#3fe07f;margin-top:2px">selected ✓</div></div>
+              <div style="background:rgba(23,194,95,.15);border:1.5px solid #17c25f;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900">Meals</div><div style="font-size:11px;font-weight:600;color:#3fe07f;margin-top:2px">selected ✓</div></div>
+              <div style="background:#1d231c;border:1.5px solid transparent;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900;color:#c7cec6">Swimming</div><div style="font-size:11px;font-weight:600;color:#6b736b;margin-top:2px">tap to add</div></div>
+              <div style="background:rgba(23,194,95,.15);border:1.5px solid #17c25f;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900">Weight</div><div style="font-size:11px;font-weight:600;color:#3fe07f;margin-top:2px">selected ✓</div></div>
+              <div style="background:#1d231c;border:1.5px solid transparent;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900;color:#c7cec6">Classes</div><div style="font-size:11px;font-weight:600;color:#6b736b;margin-top:2px">tap to add</div></div>
+              <div style="background:#1d231c;border:1.5px solid transparent;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900;color:#c7cec6">Sleep</div><div style="font-size:11px;font-weight:600;color:#6b736b;margin-top:2px">tap to add</div></div>
+              <div style="background:#1d231c;border:1.5px solid transparent;border-radius:18px;padding:15px"><div style="font-size:15px;font-weight:900;color:#c7cec6">Steps</div><div style="font-size:11px;font-weight:600;color:#6b736b;margin-top:2px">tap to add</div></div>
+            </div>
+          </div>
+          <div style="padding:12px 22px 40px"><div style="text-align:center;padding:16px;border-radius:16px;background:#17c25f;color:#0b1c10;font-size:14px;font-weight:900;letter-spacing:.02em">CONTINUE · 4 PICKED</div></div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 9c weekly rhythm -->
+    <div class="dv-opt" id="9c">
+      <div class="dv-olabel"><a class="dv-oid" href="#9c">9c</a>3 · Weekly rhythm + nudge</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 22px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;gap:5px">
+              <div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.15)"></div><div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.15)"></div>
+            </div>
+            <div>
+              <div style="font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.1">How many active<br>days a week?</div>
+              <div style="font-size:13px;font-weight:600;color:#8a938a;margin-top:8px">Be honest, not heroic. You can raise it later.</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;text-align:center;background:#1d231c;border-radius:16px;padding:18px 0"><div style="font-size:26px;font-weight:900;color:#c7cec6">2</div></div>
+              <div style="flex:1;text-align:center;background:#17c25f;border-radius:16px;padding:18px 0;color:#0b1c10;box-shadow:0 6px 18px rgba(23,194,95,.35)"><div style="font-size:26px;font-weight:900">3</div></div>
+              <div style="flex:1;text-align:center;background:#1d231c;border-radius:16px;padding:18px 0"><div style="font-size:26px;font-weight:900;color:#c7cec6">4</div></div>
+              <div style="flex:1;text-align:center;background:#1d231c;border-radius:16px;padding:18px 0"><div style="font-size:26px;font-weight:900;color:#c7cec6">5</div></div>
+              <div style="flex:1;text-align:center;background:#1d231c;border-radius:16px;padding:18px 0"><div style="font-size:26px;font-weight:900;color:#c7cec6">6+</div></div>
+            </div>
+            <div style="background:#1d231c;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:14px;font-weight:900">Nudge me</div><div style="font-size:11.5px;font-weight:600;color:#8a938a;margin-top:1px">One quiet reminder on days you haven't logged</div></div>
+                <div style="width:40px;height:24px;border-radius:12px;background:#17c25f;position:relative;flex:none"><div style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;background:#131712;border-radius:12px;padding:11px 14px">
+                <span style="font-size:13px;font-weight:700;color:#8a938a">Around</span>
+                <span style="font-size:15px;font-weight:900">17:30</span>
+              </div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:#6b736b;line-height:1.5">Your streak counts <b style="color:#8a938a">weeks you hit your rhythm</b> — one missed day never resets it.</div>
+          </div>
+          <div style="padding:12px 22px 40px"><div style="text-align:center;padding:16px;border-radius:16px;background:#17c25f;color:#0b1c10;font-size:14px;font-weight:900;letter-spacing:.02em">CONTINUE</div></div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 9d watch -->
+    <div class="dv-opt" id="9d">
+      <div class="dv-olabel"><a class="dv-oid" href="#9d">9d</a>4 · Health &amp; watch — one screen, skippable</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 22px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;gap:5px">
+              <div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.15)"></div>
+            </div>
+            <div>
+              <div style="font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.1">Let your watch do<br>the boring logging</div>
+              <div style="font-size:13px;font-weight:600;color:#8a938a;margin-top:8px">Steps and sleep fill in automatically from Apple Health. Nothing leaves your phone without sync on.</div>
+            </div>
+            <div style="background:#1d231c;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center"><div style="width:18px;height:18px;border-radius:50%;border:3px solid #3fe07f"></div></div>
+                <div style="flex:1"><div style="font-size:14px;font-weight:900">Steps &amp; activity</div><div style="font-size:11.5px;font-weight:600;color:#8a938a">auto, from watch or phone</div></div>
+                <svg width="14" height="11" viewBox="0 0 13 10"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.07)"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center"><div style="width:18px;height:10px;border-radius:5px;background:#3fe07f"></div></div>
+                <div style="flex:1"><div style="font-size:14px;font-weight:900">Sleep</div><div style="font-size:11.5px;font-weight:600;color:#8a938a">auto, if your watch tracks it</div></div>
+                <svg width="14" height="11" viewBox="0 0 13 10"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.07)"></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center"><div style="width:16px;height:16px;border-radius:4px;border:3px solid #8a938a"></div></div>
+                <div style="flex:1"><div style="font-size:14px;font-weight:900;color:#c7cec6">Workouts from watch</div><div style="font-size:11.5px;font-weight:600;color:#6b736b">optional — you can log by hand</div></div>
+                <div style="font-size:11px;font-weight:800;color:#8a938a">OFF</div>
+              </div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:#6b736b;line-height:1.5">No watch? Everything works with manual logging — that's what the big tiles are for.</div>
+          </div>
+          <div style="padding:12px 22px 40px;display:flex;flex-direction:column;gap:10px">
+            <div style="text-align:center;padding:16px;border-radius:16px;background:#17c25f;color:#0b1c10;font-size:14px;font-weight:900;letter-spacing:.02em">CONNECT APPLE HEALTH</div>
+            <div style="text-align:center;padding:8px;font-size:12.5px;font-weight:700;color:#8a938a">Skip — log everything myself</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 9e account -->
+    <div class="dv-opt" id="9e">
+      <div class="dv-olabel"><a class="dv-oid" href="#9e">9e</a>5 · Account — a pitch, not a gate</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 22px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;gap:5px">
+              <div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div><div style="flex:1;height:4px;border-radius:2px;background:#17c25f"></div>
+            </div>
+            <div>
+              <div style="font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.1">Don't lose the<br>streak you build</div>
+              <div style="font-size:13px;font-weight:600;color:#8a938a;margin-top:8px">A free account backs everything up and syncs to the web app. Without one, your data lives only on this phone.</div>
+            </div>
+            <div style="background:#1d231c;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:center;gap:10px"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg><span style="font-size:13.5px;font-weight:700">Backed up — new phone, same streak</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg><span style="font-size:13.5px;font-weight:700">Web dashboard on any computer</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg><span style="font-size:13.5px;font-weight:700">Still works fully offline</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="text-align:center;padding:15px;border-radius:16px;background:#fff;color:#0b1c10;font-size:13.5px;font-weight:900">Continue with Apple</div>
+              <div style="text-align:center;padding:15px;border-radius:16px;background:rgba(255,255,255,.08);font-size:13.5px;font-weight:900">Continue with Google</div>
+              <div style="text-align:center;padding:15px;border-radius:16px;background:rgba(255,255,255,.08);font-size:13.5px;font-weight:900">Use email</div>
+            </div>
+          </div>
+          <div style="padding:12px 22px 40px"><div style="text-align:center;padding:10px;font-size:12.5px;font-weight:700;color:#8a938a">Not now — keep everything on this phone</div></div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 9f first board -->
+    <div class="dv-opt" id="9f">
+      <div class="dv-olabel"><a class="dv-oid" href="#9f">9f</a>6 · First board — coach mark, day 1</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff;position:relative">
+          <div style="flex:1;overflow:hidden;padding:64px 18px 0;display:flex;flex-direction:column;gap:14px;opacity:.35">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg width="20" height="20" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#17c25f" transform="rotate(32 23 23)"></rect></svg>
+                  <div style="font:900 italic 25px 'Archivo';letter-spacing:-.03em;line-height:1">STREKA</div>
+                </div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a;margin-top:6px">Thu, Jul 2 · day 1</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="grid-column:1 / -1;background:#1d231c;border-radius:20px;padding:16px"><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Steps · auto</div><div style="font-size:38px;font-weight:900;line-height:1.1">2,104</div></div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;height:86px"></div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;height:86px"></div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;height:86px"></div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;height:86px"></div>
+            </div>
+          </div>
+          <!-- coach mark: spotlight workout tile -->
+          <div style="position:absolute;top:272px;left:18px;width:174px;background:#1d231c;border:1.5px solid #17c25f;border-radius:20px;padding:16px;box-shadow:0 0 0 6px rgba(23,194,95,.15),0 16px 40px rgba(0,0,0,.6)">
+            <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(23,194,95,.2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Workout</div>
+            <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">—</div>
+            <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">nothing yet</div>
+            <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em;color:#3fe07f">TAP TO START</div>
+          </div>
+          <div style="position:absolute;top:404px;left:34px;right:34px;background:#17c25f;border-radius:18px;padding:16px 18px;color:#0b1c10;box-shadow:0 16px 40px rgba(0,0,0,.5)">
+            <div style="font-size:15px;font-weight:900">Tap any tile's + to log it</div>
+            <div style="font-size:12px;font-weight:600;margin-top:3px;opacity:.75">Your first log today starts the streak. Day 1 is one tap away.</div>
+            <div style="margin-top:12px;display:inline-block;background:#0b1c10;color:#fff;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:800">GOT IT</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08);opacity:.35">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "wire onboarding into the clickable prototype" · "try a 3-screen ultra-short version" · "start the web landing page"</p>
+</section>
+
+<section class="dv-turn" id="t8">
+  <div class="dv-thd"><a class="dv-tid" href="#t8">8</a><span class="dv-tname">Streka (<a class="dv-oid" href="#7c">7c</a>) locked in — brand sheet, splash, board</span></div>
+  <p class="dv-intro">The slash mark from <a class="dv-oid" href="#4b">4b</a> stays; the story is now the <b style="color:#131712">streak stroke</b> — one slash per day kept. Wordmark stays italic 900 Archivo, leaning at the slash's angle. Tagline: "Keep the streak."</p>
+  <div class="dv-opts">
+
+    <!-- 8a brand sheet -->
+    <div class="dv-opt" id="8a" style="max-width:420px">
+      <div class="dv-olabel"><a class="dv-oid" href="#8a">8a</a>Brand sheet — lockups &amp; icon ramp</div>
+      <div class="dv-card" style="width:420px;padding:0;overflow:hidden">
+        <div style="background:#17c25f;padding:36px 32px;display:flex;align-items:center;gap:16px">
+          <svg width="48" height="48" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 42px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STREKA</div>
+        </div>
+        <div style="background:#131712;padding:36px 32px;display:flex;align-items:center;gap:16px">
+          <svg width="48" height="48" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#17c25f" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 42px 'Archivo';letter-spacing:-.03em;color:#fff">STREKA</div>
+        </div>
+        <div style="padding:24px 32px;display:flex;flex-direction:column;gap:14px">
+          <div style="font:700 10px ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#8a938a">ICON RAMP · 1024 → 29</div>
+          <div style="display:flex;align-items:flex-end;gap:16px">
+            <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="46" height="46" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+            <div style="width:60px;height:60px;border-radius:15px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="29" height="29" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+            <div style="width:44px;height:44px;border-radius:11px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+            <div style="width:29px;height:29px;border-radius:7px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+          </div>
+          <div style="font:400 11px/1.5 'Archivo';color:rgba(0,0,0,.55)">Green #17C25F · Ink #0B1C10 · Dark #131712 · Type: Archivo (wordmark italic 900) · "Keep the streak."</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8b splash -->
+    <div class="dv-opt" id="8b">
+      <div class="dv-olabel"><a class="dv-oid" href="#8b">8b</a>Splash</div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:#17c25f;font-family:'Archivo',sans-serif;position:relative">
+          <svg width="120" height="120" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 42px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STREKA</div>
+          <div style="position:absolute;bottom:64px;font-size:12px;font-weight:700;letter-spacing:.12em;color:rgba(11,28,16,.55)">KEEP THE STREAK</div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 8c board rebranded -->
+    <div class="dv-opt" id="8c">
+      <div class="dv-olabel"><a class="dv-oid" href="#8c">8c</a>Board with the brand in place</div>
+      <p class="dv-note">Wordmark up top, streak chip carries the slash. Everything else as in <a class="dv-oid" href="#1c">1c</a>.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 18px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg width="20" height="20" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#17c25f" transform="rotate(32 23 23)"></rect></svg>
+                  <div style="font:900 italic 25px 'Archivo';letter-spacing:-.03em;line-height:1">STREKA</div>
+                </div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a;margin-top:6px">Thu, Jul 2</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding-bottom:4px">
+                <div style="display:flex;align-items:center;gap:6px;background:rgba(23,194,95,.15);border-radius:999px;padding:5px 11px">
+                  <svg width="11" height="11" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#3fe07f" transform="rotate(32 23 23)"></rect></svg>
+                  <span style="font-size:12px;font-weight:800;color:#3fe07f">12</span>
+                </div>
+                <div style="width:7px;height:7px;border-radius:50%;background:#17c25f" title="synced"></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="grid-column:1 / -1;background:#1d231c;border-radius:20px;padding:16px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Steps · auto</div><div style="font-size:40px;font-weight:900;letter-spacing:-.03em;line-height:1.1">8,246</div></div>
+                <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#3fe07f">72% of 11,500</div><div style="margin-top:8px;width:120px;height:7px;border-radius:4px;background:rgba(255,255,255,.12)"><div style="width:72%;height:100%;border-radius:4px;background:#17c25f"></div></div></div>
+              </div>
+              <div style="background:#17c25f;border-radius:20px;padding:16px;color:#0b1c10">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.65">Workout</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">Logged ✓</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;opacity:.7">Upper body · 45 min</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em">STREAK 12</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Meals</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">1,430</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">of 2,200 kcal</div>
+                <div style="margin-top:12px;height:6px;border-radius:3px;background:rgba(255,255,255,.1)"><div style="width:65%;height:100%;border-radius:3px;background:#17c25f"></div></div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Run</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">4.2 km</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">this morning · GPS</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em;color:#3fe07f">STREAK 5</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;opacity:.85">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Sleep · auto</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">7h 20m</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">from watch</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Class</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">Yoga 18:30</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">booked · reminder on</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "build the clickable prototype" · "start the web landing page" · "design onboarding with this brand"</p>
+</section>
+
+<section class="dv-turn" id="t7">
+  <div class="dv-thd"><a class="dv-tid" href="#t7">7</a><span class="dv-tname">New names for the slash mark — keeping the <a class="dv-oid" href="#4b">4b</a> logo, dropping the "stryk" sound</span></div>
+  <p class="dv-intro">Each name gives the slash a different story: a <b style="color:#131712">tally mark</b> (one day logged), a <b style="color:#131712">streak</b>, or <b style="color:#131712">forward motion</b>. All coined, 4–6 letters, pronounceable first read. Quick conflict notes included — still unvetted.</p>
+  <div class="dv-opts" style="max-width:1100px">
+
+    <div class="dv-opt" id="7a" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7a">7a</a>Marq</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="40" height="40" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 40px 'Archivo';letter-spacing:-.03em;color:#0b1c10">MARQ</div>
+        </div>
+      </div>
+      <p class="dv-note">The slash IS a mark — "make your marq, every day." Tightest name–logo story of the set. (A luxury watch "MARQ" by Garmin exists — check class.)</p>
+    </div>
+
+    <div class="dv-opt" id="7b" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7b">7b</a>Traq</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="40" height="40" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 40px 'Archivo';letter-spacing:-.03em;color:#0b1c10">TRAQ</div>
+        </div>
+      </div>
+      <p class="dv-note">Says the category outright — it's a tracker. Slash reads as a bold tick. Very literal; easy to explain, harder to own emotionally.</p>
+    </div>
+
+    <div class="dv-opt" id="7c" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7c">7c</a>Streka</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="38" height="38" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 34px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STREKA</div>
+        </div>
+      </div>
+      <p class="dv-note">Streak, kept — but "streh-ka" sounds nothing like "stryk", so it escapes that crowded space. Warm, name-like ending.</p>
+    </div>
+
+    <div class="dv-opt" id="7d" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7d">7d</a>Payce</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="40" height="40" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 38px 'Archivo';letter-spacing:-.03em;color:#0b1c10">PAYCE</div>
+        </div>
+      </div>
+      <p class="dv-note">Pace — "your payce, not anyone else's." Kindest message for casual habit-builders; slash reads as forward lean. ("Payce" fintech apps exist — check.)</p>
+    </div>
+
+    <div class="dv-opt" id="7e" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7e">7e</a>Skor</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="40" height="40" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 40px 'Archivo';letter-spacing:-.03em;color:#0b1c10">SKOR</div>
+        </div>
+      </div>
+      <p class="dv-note">Keeping score with yourself; slash as a scoring stroke. Punchy 4 letters. (Hershey's "Skor" candy bar exists — different class, but famous.)</p>
+    </div>
+
+    <div class="dv-opt" id="7f" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7f">7f</a>Ryse</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="40" height="40" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 40px 'Archivo';letter-spacing:-.03em;color:#0b1c10">RYSE</div>
+        </div>
+      </div>
+      <p class="dv-note">The slash becomes a rising diagonal — progress made visible. Strong caveat: "RYSE" is an established supplement brand in fitness. Risky.</p>
+    </div>
+
+    <div class="dv-opt" id="7g" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7g">7g</a>Actyv</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="38" height="38" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 36px 'Archivo';letter-spacing:-.03em;color:#0b1c10">ACTYV</div>
+        </div>
+      </div>
+      <p class="dv-note">Broadest umbrella — covers steps, swim, classes, sleep, not just gym. The y echoes the wordmark's lean. Somewhat generic.</p>
+    </div>
+
+    <div class="dv-opt" id="7h" style="max-width:250px">
+      <div class="dv-olabel"><a class="dv-oid" href="#7h">7h</a>Dayta</div>
+      <div class="dv-card" style="box-sizing:border-box;width:250px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:12px;background:#17c25f;border:none">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="38" height="38" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 36px 'Archivo';letter-spacing:-.03em;color:#0b1c10">DAYTA</div>
+        </div>
+      </div>
+      <p class="dv-note">Double read: "day-ta" — your days, your data. Slash as one day's tally. Clever, though the pun may wear thin.</p>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "go with <a class="dv-oid" href="#7a">7a</a> — update brand screens" · "more names around the tally-mark idea" · "shortlist 2 and show both on the splash"</p>
+</section>
+
+<section class="dv-turn" id="t6">
+  <div class="dv-thd"><a class="dv-tid" href="#t6">6</a><span class="dv-tname">Respellings of <a class="dv-oid" href="#4b">4b</a> — same slash mark, availability noted</span></div>
+  <p class="dv-intro">The "stryk" sound-space in fitness is congested: STRYK (boxing app), Styrka (gym tracker), Stryker Fitness, Stryd (running). Strykk's only known conflict is a UK non-alcoholic drinks brand — a different trademark class. None of this replaces a real trademark search.</p>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="6a" style="max-width:300px">
+      <div class="dv-olabel"><a class="dv-oid" href="#6a">6a</a>STRYK — original</div>
+      <div class="dv-card" style="width:300px;overflow:hidden">
+        <div style="background:#17c25f;padding:30px 28px;display:flex;align-items:center;gap:14px">
+          <svg width="42" height="42" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 38px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STRYK</div>
+        </div>
+        <div style="padding:14px 20px;font:400 11.5px/1.5 'Archivo';color:rgba(0,0,0,.6)">Cleanest word. <b>Direct conflict:</b> STRYK boxing app already in Health &amp; Fitness on the App Store — highest risk.</div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="6b" style="max-width:300px">
+      <div class="dv-olabel"><a class="dv-oid" href="#6b">6b</a>STRYKK — double k</div>
+      <div class="dv-card" style="width:300px;overflow:hidden">
+        <div style="background:#17c25f;padding:30px 28px;display:flex;align-items:center;gap:14px">
+          <svg width="42" height="42" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 34px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STRYKK</div>
+        </div>
+        <div style="padding:14px 20px;font:400 11.5px/1.5 'Archivo';color:rgba(0,0,0,.6)">Same sound, doubled k reads athletic. Known conflict is a <b>drinks brand</b> (different class) — likely the safest of the three.</div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="6c" style="max-width:300px">
+      <div class="dv-olabel"><a class="dv-oid" href="#6c">6c</a>STRYKA — a-ending</div>
+      <div class="dv-card" style="width:300px;overflow:hidden">
+        <div style="background:#17c25f;padding:30px 28px;display:flex;align-items:center;gap:14px">
+          <svg width="42" height="42" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 34px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STRYKA</div>
+        </div>
+        <div style="padding:14px 20px;font:400 11.5px/1.5 'Archivo';color:rgba(0,0,0,.6)">Friendlier, name-like. <b>Near-collision:</b> "Styrka" gym tracker is one letter-swap away in the same category — confusable.</div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "go with <a class="dv-oid" href="#6b">6b</a> Strykk — update the brand screens" · "check a fresh name like Staq instead" · "move on to the clickable prototype"</p>
+</section>
+
+<section class="dv-turn" id="t5">
+  <div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Stryk (<a class="dv-oid" href="#4b">4b</a>) applied — brand sheet, homescreen, splash</span></div>
+  <p class="dv-intro"><b style="color:#131712">Caveat:</b> "Stryk" already exists on the App Store (an AI boxing app) and "StrykFit" is a gym brand — run a trademark check before committing. Respellings like <b style="color:#131712">Strykk</b> or <b style="color:#131712">Stryka</b> keep the sound if needed. The wordmark is italic Archivo — the letterforms lean at the same angle as the slash mark.</p>
+  <div class="dv-opts">
+
+    <!-- 5a brand sheet -->
+    <div class="dv-opt" id="5a" style="max-width:420px">
+      <div class="dv-olabel"><a class="dv-oid" href="#5a">5a</a>Brand sheet — lockups &amp; icon ramp</div>
+      <div class="dv-card" style="width:420px;padding:0;overflow:hidden">
+        <div style="background:#17c25f;padding:36px 32px;display:flex;align-items:center;gap:18px">
+          <svg width="52" height="52" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 46px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STRYK</div>
+        </div>
+        <div style="background:#131712;padding:36px 32px;display:flex;align-items:center;gap:18px">
+          <svg width="52" height="52" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#17c25f" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 46px 'Archivo';letter-spacing:-.03em;color:#fff">STRYK</div>
+        </div>
+        <div style="padding:24px 32px;display:flex;flex-direction:column;gap:14px">
+          <div style="font:700 10px ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#8a938a">ICON RAMP · 1024 → 29</div>
+          <div style="display:flex;align-items:flex-end;gap:16px">
+            <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="46" height="46" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+            <div style="width:60px;height:60px;border-radius:15px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="29" height="29" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+            <div style="width:44px;height:44px;border-radius:11px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+            <div style="width:29px;height:29px;border-radius:7px;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+          </div>
+          <div style="font:400 11px/1.5 'Archivo';color:rgba(0,0,0,.55)">Green #17C25F · Ink #0B1C10 · Dark #131712 · Type: Archivo (wordmark italic 900)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5b splash -->
+    <div class="dv-opt" id="5b">
+      <div class="dv-olabel"><a class="dv-oid" href="#5b">5b</a>Splash</div>
+      <p class="dv-note">First open. The slash sweeps in, wordmark settles under it.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:#17c25f;font-family:'Archivo',sans-serif">
+          <svg width="120" height="120" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg>
+          <div style="font:900 italic 44px 'Archivo';letter-spacing:-.03em;color:#0b1c10">STRYK</div>
+          <div style="position:absolute;bottom:64px;font-size:12px;font-weight:700;letter-spacing:.12em;color:rgba(11,28,16,.55)">EVERY DAY COUNTS</div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 5c board rebranded -->
+    <div class="dv-opt" id="5c">
+      <div class="dv-olabel"><a class="dv-oid" href="#5c">5c</a>Board with the brand in place</div>
+      <p class="dv-note">Wordmark replaces "Log it." up top; the streak chip picks up the slash mark. Everything else untouched from <a class="dv-oid" href="#1c">1c</a>.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 18px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg width="20" height="20" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#17c25f" transform="rotate(32 23 23)"></rect></svg>
+                  <div style="font:900 italic 26px 'Archivo';letter-spacing:-.03em;line-height:1">STRYK</div>
+                </div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a;margin-top:6px">Thu, Jul 2</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding-bottom:4px">
+                <div style="display:flex;align-items:center;gap:6px;background:rgba(23,194,95,.15);border-radius:999px;padding:5px 11px">
+                  <svg width="11" height="11" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#3fe07f" transform="rotate(32 23 23)"></rect></svg>
+                  <span style="font-size:12px;font-weight:800;color:#3fe07f">12</span>
+                </div>
+                <div style="width:7px;height:7px;border-radius:50%;background:#17c25f" title="synced"></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="grid-column:1 / -1;background:#1d231c;border-radius:20px;padding:16px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Steps · auto</div><div style="font-size:40px;font-weight:900;letter-spacing:-.03em;line-height:1.1">8,246</div></div>
+                <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#3fe07f">72% of 11,500</div><div style="margin-top:8px;width:120px;height:7px;border-radius:4px;background:rgba(255,255,255,.12)"><div style="width:72%;height:100%;border-radius:4px;background:#17c25f"></div></div></div>
+              </div>
+              <div style="background:#17c25f;border-radius:20px;padding:16px;color:#0b1c10">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.65">Workout</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">Logged ✓</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;opacity:.7">Upper body · 45 min</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em">STREAK 12</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Meals</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">1,430</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">of 2,200 kcal</div>
+                <div style="margin-top:12px;height:6px;border-radius:3px;background:rgba(255,255,255,.1)"><div style="width:65%;height:100%;border-radius:3px;background:#17c25f"></div></div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Run</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">4.2 km</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">this morning · GPS</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em;color:#3fe07f">STREAK 5</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;opacity:.85">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Sleep · auto</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">7h 20m</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">from watch</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Class</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">Yoga 18:30</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">booked · reminder on</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "build the clickable prototype with this brand" · "start the web version — landing page" · "try the Strykk / Stryka respellings on the sheet"</p>
+</section>
+
+<section class="dv-turn" id="t4">
+  <div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Coined names — real words bent into ownable ones (riff on turn <a class="dv-tid" href="#t3" style="background:rgba(0,0,0,.08);color:#131712">3</a>)</span></div>
+  <p class="dv-intro">Same concepts, no dictionary words: each is a 4–6 letter respelling that stays pronounceable on first read. Coined names are far easier to trademark and get exact-match domains/handles for.</p>
+  <div class="dv-opts" style="max-width:1100px">
+
+    <div class="dv-opt" id="4a" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>Repx</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="52" height="40" viewBox="0 0 52 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#0b1c10" stroke-width="7"></circle><circle cx="34" cy="20" r="16" fill="none" stroke="#0b1c10" stroke-width="7" opacity=".45"></circle></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Repx</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3i">3i</a> Reps. Your example — reads "reps", spells unique. The x adds edge.</p>
+    </div>
+
+    <div class="dv-opt" id="4b" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>Stryk</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="46" height="46" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Stryk</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3c">3c</a> Streak — reads "strike/streak" at once. Energetic, 5 letters, very brandable.</p>
+    </div>
+
+    <div class="dv-opt" id="4c" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4c">4c</a>Staq</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="46" height="44" viewBox="0 0 46 44"><rect x="10" y="2" width="26" height="9" rx="4.5" fill="#0b1c10"></rect><rect x="5" y="17" width="36" height="9" rx="4.5" fill="#0b1c10"></rect><rect x="0" y="32" width="46" height="9" rx="4.5" fill="#0b1c10"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Staq</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3f">3f</a> Stack. Four letters, clean q-ending — "stack your days".</p>
+    </div>
+
+    <div class="dv-opt" id="4d" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4d">4d</a>Tallo</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="52" height="44" viewBox="0 0 52 44"><rect x="2" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="15" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="28" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="41" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="-4" y="18" width="60" height="7" rx="3.5" fill="#0b1c10" transform="rotate(-18 26 22)"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Tallo</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3b">3b</a> Tally. Friendly o-ending, keeps the great tally-marks icon.</p>
+    </div>
+
+    <div class="dv-opt" id="4e" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4e">4e</a>Kepta</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="46" height="36" viewBox="0 0 46 36"><path d="M4 19l13 13L42 4" stroke="#0b1c10" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Kepta</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3a">3a</a> Kept. Softer, name-like ("kept-ah"). Keeps the maximal check.</p>
+    </div>
+
+    <div class="dv-opt" id="4f" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4f">4f</a>Chayn</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="56" height="36" viewBox="0 0 56 36"><rect x="2" y="6" width="30" height="24" rx="12" fill="none" stroke="#0b1c10" stroke-width="7"></rect><rect x="24" y="6" width="30" height="24" rx="12" fill="none" stroke="#0b1c10" stroke-width="7"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Chayn</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3e">3e</a> Chain — "don't break the chayn". Distinctive spelling, same linked mark.</p>
+    </div>
+
+    <div class="dv-opt" id="4g" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4g">4g</a>Stryv</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="44" height="40" viewBox="0 0 44 40"><path d="M6 34L22 8l16 26" stroke="#0b1c10" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Stryv</div>
+      </div>
+      <p class="dv-note">New — from "strive". Punchy verb energy, 5 letters. Mark: an upward peak.</p>
+    </div>
+
+    <div class="dv-opt" id="4h" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4h">4h</a>Habyt</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#0b1c10" stroke-width="7"></circle><circle cx="22" cy="22" r="6" fill="#0b1c10"></circle></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Habyt</div>
+      </div>
+      <p class="dv-note">New — from "habit", says the category outright. Mark: circle + dot, the daily return.</p>
+    </div>
+
+    <div class="dv-opt" id="4i" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4i">4i</a>Tikr</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" fill="none" stroke="#0b1c10" stroke-width="6"></circle><path d="M14 22l6 6 11-12" stroke="#0b1c10" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Tikr</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3l">3l</a> Tick. Dropped-vowel style (Tumblr/Flickr) — feels a touch 2010s.</p>
+    </div>
+
+    <div class="dv-opt" id="4j" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4j">4j</a>Gryt</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="42" height="42" viewBox="0 0 42 42"><rect x="0" y="0" width="18" height="18" rx="6" fill="#0b1c10"></rect><rect x="24" y="0" width="18" height="18" rx="6" fill="#0b1c10" opacity=".45"></rect><rect x="0" y="24" width="18" height="18" rx="6" fill="#0b1c10" opacity=".45"></rect><rect x="24" y="24" width="18" height="18" rx="6" fill="#0b1c10"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Gryt</div>
+      </div>
+      <p class="dv-note">From <a class="dv-oid" href="#3j">3j</a> Grit. Still the toughest tone of the set — better if you later target lifters.</p>
+    </div>
+
+    <div class="dv-opt" id="4k" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4k">4k</a>Daylo</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="48" height="38" viewBox="0 0 48 38"><path d="M8 30a16 16 0 0132 0z" fill="#0b1c10"></path><rect x="0" y="31" width="48" height="7" rx="3.5" fill="#0b1c10" opacity=".45"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Daylo</div>
+      </div>
+      <p class="dv-note">New — from "daily". Warmest and most casual of the set. Mark: a rising sun, every day.</p>
+    </div>
+
+    <div class="dv-opt" id="4l" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#4l">4l</a>Momnt</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="48" height="40" viewBox="0 0 48 40"><rect x="14" y="0" width="11" height="46" rx="5.5" fill="#0b1c10" opacity=".4" transform="rotate(18 20 20)"></rect><rect x="28" y="0" width="11" height="46" rx="5.5" fill="#0b1c10" transform="rotate(18 33 20)"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Momnt</div>
+      </div>
+      <p class="dv-note">New — reads "moment" and hints "momentum". Mark: leaning bars, motion carried forward.</p>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "shortlist <a class="dv-oid" href="#4b">4b</a> + <a class="dv-oid" href="#4c">4c</a> and apply to the app board" · "wordmark studies for one name" · "try softer, rounder marks"</p>
+</section>
+
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Brand — 12 name candidates, each with an abstract mark (green tile, dark mark)</span></div>
+  <p class="dv-intro">Brief: 4–6 letters, streak/consistency themed or a punchy verb, no "fit". Marks are pure geometry — built to stay readable at 29px. Names are unvetted: shortlist first, then I'd check App Store / trademark / domain availability before committing.</p>
+  <div class="dv-opts" style="max-width:1100px">
+
+    <div class="dv-opt" id="3a" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Kept</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="46" height="36" viewBox="0 0 46 36"><path d="M4 19l13 13L42 4" stroke="#0b1c10" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Kept</div>
+      </div>
+      <p class="dv-note">The promise itself — "I kept it up." Warm, past-tense satisfaction. Mark: the checkmark, maximal.</p>
+    </div>
+
+    <div class="dv-opt" id="3b" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Tally</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="52" height="44" viewBox="0 0 52 44"><rect x="2" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="15" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="28" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="41" y="2" width="7" height="40" rx="3.5" fill="#0b1c10"></rect><rect x="-4" y="18" width="60" height="7" rx="3.5" fill="#0b1c10" transform="rotate(-18 26 22)"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Tally</div>
+      </div>
+      <p class="dv-note">Counting days, the oldest way. Mark: four bars + the slash — literally "day five". Strongest name–mark fit.</p>
+    </div>
+
+    <div class="dv-opt" id="3c" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a>Streak</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="46" height="46" viewBox="0 0 46 46"><rect x="16" y="-8" width="14" height="62" rx="7" fill="#0b1c10" transform="rotate(32 23 23)"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Streak</div>
+      </div>
+      <p class="dv-note">Says exactly what the app rewards. On-the-nose — crowded namespace, worth checking. Mark: one bold slash.</p>
+    </div>
+
+    <div class="dv-opt" id="3d" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3d">3d</a>Notch</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="44" height="44" viewBox="0 0 44 44"><path d="M8 2h28a6 6 0 016 6v28a6 6 0 01-6 6H8a6 6 0 01-6-6V8a6 6 0 016-6z M22 2v14a4 4 0 004 4h16" fill="#0b1c10" fill-rule="evenodd"></path><path d="M26 0h18v20H30a4 4 0 01-4-4V0z" fill="#17c25f"></path></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Notch</div>
+      </div>
+      <p class="dv-note">"Another notch." Effort made physical. Mark: a square with a corner notched out — ownable, quiet.</p>
+    </div>
+
+    <div class="dv-opt" id="3e" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3e">3e</a>Chain</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="56" height="36" viewBox="0 0 56 36"><rect x="2" y="6" width="30" height="24" rx="12" fill="none" stroke="#0b1c10" stroke-width="7"></rect><rect x="24" y="6" width="30" height="24" rx="12" fill="none" stroke="#0b1c10" stroke-width="7"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Chain</div>
+      </div>
+      <p class="dv-note">"Don't break the chain" (Seinfeld method). Mark: two linked ovals. Familiar metaphor, slightly heavy word.</p>
+    </div>
+
+    <div class="dv-opt" id="3f" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3f">3f</a>Stack</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="46" height="44" viewBox="0 0 46 44"><rect x="10" y="2" width="26" height="9" rx="4.5" fill="#0b1c10"></rect><rect x="5" y="17" width="36" height="9" rx="4.5" fill="#0b1c10"></rect><rect x="0" y="32" width="46" height="9" rx="4.5" fill="#0b1c10"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Stack</div>
+      </div>
+      <p class="dv-note">Stacking days, compounding wins. Verb + noun. Mark: three widening bars — growth you can read at a glance.</p>
+    </div>
+
+    <div class="dv-opt" id="3g" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3g">3g</a>Logit</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="44" height="44" viewBox="0 0 44 44"><rect x="17" y="0" width="10" height="44" rx="5" fill="#0b1c10"></rect><rect x="0" y="17" width="44" height="10" rx="5" fill="#0b1c10"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Logit</div>
+      </div>
+      <p class="dv-note">A command — matches the "Log it." header already in the UI. Mark: the plus, the app's core action. (Also a stats term; harmless.)</p>
+    </div>
+
+    <div class="dv-opt" id="3h" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3h">3h</a>Stint</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="52" height="14" viewBox="0 0 52 14"><rect x="0" y="2" width="38" height="10" rx="5" fill="#0b1c10"></rect><circle cx="46" cy="7" r="6" fill="#0b1c10"></circle></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Stint</div>
+      </div>
+      <p class="dv-note">A bounded burst of effort — honest about how casual users actually train. Mark: a session bar + its end point.</p>
+    </div>
+
+    <div class="dv-opt" id="3i" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3i">3i</a>Reps</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="52" height="40" viewBox="0 0 52 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#0b1c10" stroke-width="7"></circle><circle cx="34" cy="20" r="16" fill="none" stroke="#0b1c10" stroke-width="7" opacity=".45"></circle></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Reps</div>
+      </div>
+      <p class="dv-note">Repetition is the whole philosophy — in the gym and in the habit. Mark: an echoing circle. Skews slightly lifter-y.</p>
+    </div>
+
+    <div class="dv-opt" id="3j" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3j">3j</a>Grit</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="42" height="42" viewBox="0 0 42 42"><rect x="0" y="0" width="18" height="18" rx="6" fill="#0b1c10"></rect><rect x="24" y="0" width="18" height="18" rx="6" fill="#0b1c10" opacity=".45"></rect><rect x="0" y="24" width="18" height="18" rx="6" fill="#0b1c10" opacity=".45"></rect><rect x="24" y="24" width="18" height="18" rx="6" fill="#0b1c10"></rect></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Grit</div>
+      </div>
+      <p class="dv-note">Four letters of persistence. Mark: a gritty 2×2 grain. Punchy, but tone is tougher than "casual habit-builder".</p>
+    </div>
+
+    <div class="dv-opt" id="3k" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3k">3k</a>Ritual</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#0b1c10" stroke-width="7"></circle><circle cx="22" cy="22" r="6" fill="#0b1c10"></circle></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Ritual</div>
+      </div>
+      <p class="dv-note">Habit, elevated — something you return to daily. Mark: circle + center dot, calm and iconic. Softest of the set.</p>
+    </div>
+
+    <div class="dv-opt" id="3l" style="max-width:240px">
+      <div class="dv-olabel"><a class="dv-oid" href="#3l">3l</a>Tick</div>
+      <div class="dv-card" style="box-sizing:border-box;width:240px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:96px;height:96px;border-radius:24px;background:#17c25f;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(23,194,95,.35)"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" fill="none" stroke="#0b1c10" stroke-width="6"></circle><path d="M14 22l6 6 11-12" stroke="#0b1c10" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        <div style="font:900 26px 'Archivo';letter-spacing:-.02em;color:#131712">Tick</div>
+      </div>
+      <p class="dv-note">Tick the box, tick of the clock — double meaning for daily logging. Mark: check in a ring. Watch UK slang ("tick = credit").</p>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "shortlist <a class="dv-oid" href="#3b">3b</a> + <a class="dv-oid" href="#3f">3f</a>, show them on the app board" · "more made-up-word names" · "try the marks dark-tile too"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Going deep on <a class="dv-oid" href="#1c">1c</a> — the Board flow: log, track, progress, goals, offline</span></div>
+  <p class="dv-intro">The board (<a class="dv-oid" href="#1c">1c</a>) is home. Tapping a tile's <b style="color:#131712">+</b> opens a quick-log sheet (<a class="dv-oid" href="#2a">2a</a>); timed activities like workouts go live in-session (<a class="dv-oid" href="#2b">2b</a>). Trends (<a class="dv-oid" href="#2c">2c</a>) and Goals (<a class="dv-oid" href="#2d">2d</a>) are the other two tabs. Offline (<a class="dv-oid" href="#2e">2e</a>) is invisible: the sync dot goes gray, everything still works.</p>
+  <div class="dv-opts">
+
+    <!-- ============ 2a QUICK-LOG SHEET ============ -->
+    <div class="dv-opt" id="2a">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Quick-log sheet — tap a tile's +</div>
+      <p class="dv-note">Board dims, sheet slides up. Recents first — casual users repeat the same few workouts, so logging is usually 2 taps total.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff;position:relative">
+          <!-- dimmed board behind -->
+          <div style="flex:1;overflow:hidden;padding:64px 18px 0;display:flex;flex-direction:column;gap:14px;opacity:.25;filter:blur(1px)">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a">Thu, Jul 2 · streak 12</div>
+                <div style="font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.05">Log it<span style="color:#17c25f">.</span></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="grid-column:1 / -1;background:#1d231c;border-radius:20px;padding:16px"><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Steps · auto</div><div style="font-size:40px;font-weight:900;line-height:1.1">8,246</div></div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;height:90px"></div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;height:90px"></div>
+            </div>
+          </div>
+          <!-- sheet -->
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#1d231c;border-radius:28px 28px 0 0;padding:12px 20px 44px;box-shadow:0 -12px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:14px">
+            <div style="width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,.2);margin:0 auto"></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <div style="font-size:24px;font-weight:900;letter-spacing:-.02em">Log workout</div>
+              <div style="font-size:12px;font-weight:700;color:#8a938a">Thu, Jul 2</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Recent</div>
+              <div style="background:#131712;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:15px;font-weight:800">Upper body</div><div style="font-size:11.5px;color:#8a938a;margin-top:1px">6 exercises · ~45 min · done Tue</div></div>
+                <div style="width:34px;height:34px;border-radius:50%;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="12" height="14" viewBox="0 0 12 14"><path d="M2 1l9 6-9 6V1z" fill="#0b1c10"></path></svg></div>
+              </div>
+              <div style="background:#131712;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:15px;font-weight:800">Lower body</div><div style="font-size:11.5px;color:#8a938a;margin-top:1px">5 exercises · ~40 min · done Sun</div></div>
+                <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="12" height="14" viewBox="0 0 12 14"><path d="M2 1l9 6-9 6V1z" fill="#fff"></path></svg></div>
+              </div>
+              <div style="background:#131712;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+                <div><div style="font-size:15px;font-weight:800">Full body 30</div><div style="font-size:11.5px;color:#8a938a;margin-top:1px">8 exercises · ~30 min · done Jun 24</div></div>
+                <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center"><svg width="12" height="14" viewBox="0 0 12 14"><path d="M2 1l9 6-9 6V1z" fill="#fff"></path></svg></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;border:1.5px dashed rgba(255,255,255,.25);border-radius:16px;padding:13px;text-align:center;font-size:13px;font-weight:800">Start empty</div>
+              <div style="flex:1;border:1.5px dashed rgba(255,255,255,.25);border-radius:16px;padding:13px;text-align:center;font-size:13px;font-weight:800">Log past workout</div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 2b ACTIVE WORKOUT ============ -->
+    <div class="dv-opt" id="2b">
+      <div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Active workout — live session</div>
+      <p class="dv-note">Timer up top, one exercise in focus, sets tick off with one tap. Works fully offline; the session is saved locally set-by-set.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Upper body</div>
+              <div style="font-size:12px;font-weight:700;color:#8a938a">3 of 6 exercises</div>
+            </div>
+            <div style="text-align:center;padding:6px 0 2px">
+              <div style="font-size:64px;font-weight:900;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums">24:18</div>
+              <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:rgba(23,194,95,.15);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:800;color:#3fe07f">REST 0:42</div>
+            </div>
+            <div style="background:#1d231c;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font-size:20px;font-weight:900">Bench press</div>
+                <div style="font-size:12px;font-weight:700;color:#8a938a">last: 60 kg × 8</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:12px;background:rgba(23,194,95,.1);border-radius:14px;padding:11px 14px">
+                  <div style="width:24px;height:24px;border-radius:50%;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="11" height="9" viewBox="0 0 11 9"><path d="M1 4.5l3 3L10 1" stroke="#0b1c10" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg></div>
+                  <div style="flex:1;font-size:15px;font-weight:800">60 kg × 8</div>
+                  <div style="font-size:11px;font-weight:700;color:#8a938a">SET 1</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:rgba(23,194,95,.1);border-radius:14px;padding:11px 14px">
+                  <div style="width:24px;height:24px;border-radius:50%;background:#17c25f;display:flex;align-items:center;justify-content:center"><svg width="11" height="9" viewBox="0 0 11 9"><path d="M1 4.5l3 3L10 1" stroke="#0b1c10" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg></div>
+                  <div style="flex:1;font-size:15px;font-weight:800">60 kg × 8</div>
+                  <div style="font-size:11px;font-weight:700;color:#8a938a">SET 2</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:11px 14px">
+                  <div style="width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.3)"></div>
+                  <div style="flex:1;font-size:15px;font-weight:800">62.5 kg × 6</div>
+                  <div style="font-size:11px;font-weight:800;color:#3fe07f">TAP WHEN DONE</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div style="flex:1;text-align:center;border:1.5px dashed rgba(255,255,255,.2);border-radius:12px;padding:10px;font-size:12.5px;font-weight:800;color:#8a938a">+ Add set</div>
+                <div style="flex:1;text-align:center;border:1.5px dashed rgba(255,255,255,.2);border-radius:12px;padding:10px;font-size:12.5px;font-weight:800;color:#8a938a">Swap exercise</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;background:#1d231c;border-radius:16px;padding:13px 16px;opacity:.7">
+              <div style="font-size:13.5px;font-weight:800;color:#8a938a">Next: Incline dumbbell press</div>
+              <svg width="8" height="14" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="#8a938a" stroke-width="2" fill="none" stroke-linecap="round"></path></svg>
+            </div>
+          </div>
+          <div style="padding:12px 20px 40px;display:flex;gap:10px">
+            <div style="flex:none;padding:15px 18px;border-radius:16px;background:rgba(255,255,255,.08);font-size:14px;font-weight:800;color:#8a938a">Pause</div>
+            <div style="flex:1;text-align:center;padding:15px;border-radius:16px;background:#17c25f;color:#0b1c10;font-size:14px;font-weight:900;letter-spacing:.02em">FINISH WORKOUT</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 2c TRENDS ============ -->
+    <div class="dv-opt" id="2c">
+      <div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Trends — progress over time</div>
+      <p class="dv-note">Week/month/year toggle, one hero metric, then per-tracker mini-charts. Consistency calendar reinforces the streak habit loop.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div style="font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.05">Trends</div>
+              <div style="display:flex;background:#1d231c;border-radius:999px;padding:3px">
+                <div style="padding:6px 14px;border-radius:999px;background:#17c25f;color:#0b1c10;font-size:12px;font-weight:800">Week</div>
+                <div style="padding:6px 14px;font-size:12px;font-weight:700;color:#8a938a">Month</div>
+                <div style="padding:6px 14px;font-size:12px;font-weight:700;color:#8a938a">Year</div>
+              </div>
+            </div>
+            <!-- hero: active days -->
+            <div style="background:#1d231c;border-radius:22px;padding:18px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Active days</div><div style="font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1.1">5<span style="font-size:20px;color:#8a938a;font-weight:700"> / 7</span></div></div>
+                <div style="font-size:12px;font-weight:800;color:#3fe07f">▴ 1 vs last week</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:14px;align-items:flex-end;height:64px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:38px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#8a938a">M</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:52px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#8a938a">T</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:10px;border-radius:6px;background:rgba(255,255,255,.12)"></div><span style="font-size:10px;font-weight:700;color:#8a938a">W</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:44px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#8a938a">T</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:58px;border-radius:6px;background:#17c25f;box-shadow:0 0 0 2px rgba(63,224,127,.4)"></div><span style="font-size:10px;font-weight:800;color:#fff">F</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:30px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#8a938a">S</span></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><div style="width:100%;height:10px;border-radius:6px;background:rgba(255,255,255,.12)"></div><span style="font-size:10px;font-weight:700;color:#8a938a">S</span></div>
+              </div>
+            </div>
+            <!-- weight -->
+            <div style="background:#1d231c;border-radius:22px;padding:18px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Weight</div>
+                <div style="font-size:12px;font-weight:800;color:#3fe07f">▾ 1.8 kg in 30 days</div>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-top:2px"><div style="font-size:28px;font-weight:900">72.4</div><div style="font-size:13px;font-weight:700;color:#8a938a">kg</div></div>
+              <svg width="100%" height="52" viewBox="0 0 300 52" preserveAspectRatio="none" style="margin-top:6px;display:block">
+                <polyline points="0,10 40,14 80,12 120,20 160,24 200,22 240,32 300,38" fill="none" stroke="#17c25f" stroke-width="3" stroke-linecap="round"></polyline>
+                <circle cx="300" cy="38" r="4" fill="#3fe07f"></circle>
+              </svg>
+            </div>
+            <!-- consistency + prs row -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="background:#1d231c;border-radius:20px;padding:16px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Consistency</div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px">
+                  <div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.1)"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#0e7a3c"></div><div style="aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.1)"></div>
+                  <div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#0e7a3c"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.1)"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#0e7a3c"></div>
+                  <div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.1)"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#17c25f"></div><div style="aspect-ratio:1;border-radius:4px;background:#3fe07f;box-shadow:0 0 0 1.5px rgba(63,224,127,.5)"></div>
+                </div>
+                <div style="font-size:10.5px;font-weight:600;color:#8a938a;margin-top:8px">last 3 weeks</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Bests this month</div>
+                <div style="display:flex;flex-direction:column;gap:9px;margin-top:10px">
+                  <div><div style="font-size:15px;font-weight:900">62.5 kg</div><div style="font-size:10.5px;font-weight:600;color:#8a938a">bench press</div></div>
+                  <div><div style="font-size:15px;font-weight:900">5.4 km</div><div style="font-size:10.5px;font-weight:600;color:#8a938a">longest run</div></div>
+                  <div><div style="font-size:15px;font-weight:900">12,940</div><div style="font-size:10.5px;font-weight:600;color:#8a938a">best step day</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- tab bar -->
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;background:#fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 2d GOALS ============ -->
+    <div class="dv-opt" id="2d">
+      <div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Goals &amp; reminders</div>
+      <p class="dv-note">Weekly goals (not daily — kinder for casual users), each tied to a tile. Reminders are per-goal, with quiet nudge copy.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a">This week · 4 days left</div>
+              <div style="font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.05">Goals</div>
+            </div>
+            <div style="background:#1d231c;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-size:16px;font-weight:900">Work out 4× a week</div>
+                <div style="font-size:13px;font-weight:900;color:#3fe07f">2 / 4</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <div style="flex:1;height:8px;border-radius:4px;background:#17c25f"></div>
+                <div style="flex:1;height:8px;border-radius:4px;background:#17c25f"></div>
+                <div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.12)"></div>
+                <div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.12)"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:#8a938a">
+                <span>Nudge: Thu &amp; Sat, 17:30</span>
+                <div style="width:40px;height:24px;border-radius:12px;background:#17c25f;position:relative"><div style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:#fff"></div></div>
+              </div>
+            </div>
+            <div style="background:#1d231c;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-size:16px;font-weight:900">70,000 steps a week</div>
+                <div style="font-size:13px;font-weight:900;color:#3fe07f">61%</div>
+              </div>
+              <div style="height:8px;border-radius:4px;background:rgba(255,255,255,.12)"><div style="width:61%;height:100%;border-radius:4px;background:#17c25f"></div></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:600;color:#8a938a">
+                <span>42,800 done · auto from watch</span>
+                <div style="width:40px;height:24px;border-radius:12px;background:rgba(255,255,255,.15);position:relative"><div style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#8a938a"></div></div>
+              </div>
+            </div>
+            <div style="background:#1d231c;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-size:16px;font-weight:900">Reach 70 kg</div>
+                <div style="font-size:13px;font-weight:900;color:#8a938a">72.4 now</div>
+              </div>
+              <div style="height:8px;border-radius:4px;background:rgba(255,255,255,.12)"><div style="width:78%;height:100%;border-radius:4px;background:#17c25f"></div></div>
+              <div style="font-size:11.5px;font-weight:600;color:#8a938a">Started at 76 kg · on pace for late Aug</div>
+            </div>
+            <div style="border:1.5px dashed rgba(255,255,255,.22);border-radius:18px;padding:14px;text-align:center;font-size:13px;font-weight:800;color:#8a938a">+ New goal</div>
+          </div>
+          <!-- tab bar -->
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;background:#fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:50%;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 2e OFFLINE ============ -->
+    <div class="dv-opt" id="2e">
+      <div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>Offline — invisible, just works</div>
+      <p class="dv-note">Same board, zero drama: sync dot goes gray ("Offline"), logging still instant. A one-time toast confirms saves are local; pending items get no badges — they just sync when back online.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff;position:relative">
+          <div style="flex:1;overflow:hidden;padding:64px 18px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a">Thu, Jul 2 · streak 12</div>
+                <div style="font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.05">Log it<span style="color:#17c25f">.</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#8a938a;padding-bottom:6px"><div style="width:7px;height:7px;border-radius:50%;background:#6b736b"></div>Offline</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="grid-column:1 / -1;background:#1d231c;border-radius:20px;padding:16px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Steps · auto</div><div style="font-size:40px;font-weight:900;letter-spacing:-.03em;line-height:1.1">8,246</div></div>
+                <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#3fe07f">72% of 11,500</div><div style="margin-top:8px;width:120px;height:7px;border-radius:4px;background:rgba(255,255,255,.12)"><div style="width:72%;height:100%;border-radius:4px;background:#17c25f"></div></div></div>
+              </div>
+              <div style="background:#17c25f;border-radius:20px;padding:16px;color:#0b1c10">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.65">Workout</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">Logged ✓</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;opacity:.7">Upper body · 45 min</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em">STREAK 12</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Meals</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">1,860</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">of 2,200 kcal</div>
+                <div style="margin-top:12px;height:6px;border-radius:3px;background:rgba(255,255,255,.1)"><div style="width:85%;height:100%;border-radius:3px;background:#17c25f"></div></div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Run</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">4.2 km</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">this morning · GPS</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em;color:#3fe07f">STREAK 5</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;opacity:.85">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Sleep · auto</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">7h 20m</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">from watch</div>
+              </div>
+            </div>
+          </div>
+          <!-- toast -->
+          <div style="position:absolute;left:24px;right:24px;bottom:110px;background:rgba(29,35,28,.97);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:11px;box-shadow:0 10px 30px rgba(0,0,0,.5)">
+            <div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center"><svg width="13" height="10" viewBox="0 0 13 10"><path d="M1 5l4 4L12 1" stroke="#3fe07f" stroke-width="2.2" fill="none" stroke-linecap="round"></path></svg></div>
+            <div><div style="font-size:13px;font-weight:800">Meal logged</div><div style="font-size:11px;font-weight:600;color:#8a938a">Saved on this phone — will sync when you're back online</div></div>
+          </div>
+          <!-- tab bar -->
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "make it a clickable prototype" · "show the run/GPS screen and class booking" · "start the web version — landing page + responsive dashboard"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Three UX approaches — native mobile Today screen &amp; logging model</span></div>
+  <p class="dv-intro"><b style="color:#131712">Assumptions:</b> free app for casual habit-builders; tracks workouts, runs, steps, nutrition, weight, sleep, swim &amp; classes; wearable data with manual fallback; offline-first with an invisible sync model (subtle indicator only). Energetic &amp; bold, green accent, big numbers (Archivo). The three options differ in <b style="color:#131712">where logging lives</b> — that's the core UX decision. Visual language is held roughly constant so you can judge the UX, not the paint.</p>
+  <div class="dv-opts">
+
+    <!-- ============ 1a HUB ============ -->
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Hub — classic dashboard, center [+] to log</div>
+      <p class="dv-note">By-the-book. Today is a read-only summary (ring + module cards); all logging funnels through one big + button. Familiar, safest, scales to many trackers.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#f5f7f3;font-family:'Archivo',sans-serif;color:#131712">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <!-- header -->
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6b736b">Thu, Jul 2</div>
+                <div style="font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.05">Today</div>
+              </div>
+              <div style="position:relative;width:38px;height:38px;border-radius:50%;background:#d8e4d6;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#3a4a3a">JT
+                <div style="position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:#17c25f;border:2px solid #f5f7f3" title="synced"></div>
+              </div>
+            </div>
+            <!-- hero -->
+            <div style="background:#131712;border-radius:24px;padding:20px 20px 18px;color:#fff;display:flex;align-items:center;gap:18px">
+              <div style="flex:1">
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9aa89a">Steps</div>
+                <div style="font-size:52px;font-weight:900;letter-spacing:-.03em;line-height:1">8,246</div>
+                <div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:rgba(23,194,95,.18);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;color:#3fe07f">12-day streak</div>
+              </div>
+              <svg width="88" height="88" viewBox="0 0 88 88">
+                <circle cx="44" cy="44" r="37" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="9"></circle>
+                <circle cx="44" cy="44" r="37" fill="none" stroke="#17c25f" stroke-width="9" stroke-linecap="round" stroke-dasharray="167 233" transform="rotate(-90 44 44)"></circle>
+                <text x="44" y="41" text-anchor="middle" fill="#fff" font-size="17" font-weight="800" font-family="Archivo">72%</text>
+                <text x="44" y="55" text-anchor="middle" fill="#9aa89a" font-size="9" font-weight="600" font-family="Archivo">of goal</text>
+              </svg>
+            </div>
+            <!-- mini stats -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div style="background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;padding:12px 14px"><div style="font-size:20px;font-weight:800">438</div><div style="font-size:11px;font-weight:600;color:#6b736b">kcal burned</div></div>
+              <div style="background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;padding:12px 14px"><div style="font-size:20px;font-weight:800">36<span style="font-size:13px;color:#6b736b"> min</span></div><div style="font-size:11px;font-weight:600;color:#6b736b">active</div></div>
+              <div style="background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;padding:12px 14px"><div style="font-size:20px;font-weight:800">5.8<span style="font-size:13px;color:#6b736b"> km</span></div><div style="font-size:11px;font-weight:600;color:#6b736b">distance</div></div>
+            </div>
+            <!-- module cards -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:18px;padding:14px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b736b">Workout</div>
+                <div style="font-size:16px;font-weight:800;margin-top:4px">Upper body</div>
+                <div style="font-size:12px;color:#6b736b;margin-top:2px">45 min · logged 7:10</div>
+              </div>
+              <div style="background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:18px;padding:14px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b736b">Nutrition</div>
+                <div style="font-size:16px;font-weight:800;margin-top:4px">1,430 <span style="font-size:12px;font-weight:600;color:#6b736b">/ 2,200 kcal</span></div>
+                <div style="margin-top:8px;height:6px;border-radius:3px;background:#e7ebe5"><div style="width:65%;height:100%;border-radius:3px;background:#17c25f"></div></div>
+              </div>
+              <div style="background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:18px;padding:14px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b736b">Sleep</div>
+                <div style="font-size:16px;font-weight:800;margin-top:4px">7h 20m</div>
+                <div style="font-size:12px;color:#6b736b;margin-top:2px">from watch</div>
+              </div>
+              <div style="background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:18px;padding:14px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b736b">Weight</div>
+                <div style="font-size:16px;font-weight:800;margin-top:4px">72.4 <span style="font-size:12px;font-weight:600;color:#6b736b">kg</span></div>
+                <div style="font-size:12px;font-weight:700;color:#17a253;margin-top:2px">▾ 0.3 this week</div>
+              </div>
+            </div>
+          </div>
+          <!-- tab bar -->
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 18px 32px;background:rgba(255,255,255,.92);border-top:1px solid rgba(0,0,0,.06)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#131712"></div><span style="font-size:10px;font-weight:700">Today</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #131712"></div><span style="font-size:10px;font-weight:700">Progress</span></div>
+            <div style="width:54px;height:54px;border-radius:50%;background:#17c25f;display:flex;align-items:center;justify-content:center;margin-top:-24px;box-shadow:0 6px 16px rgba(23,194,95,.4)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 3v16M3 11h16" stroke="#fff" stroke-width="3" stroke-linecap="round"></path></svg></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #131712"></div><span style="font-size:10px;font-weight:700">Goals</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;background:#131712"></div><span style="font-size:10px;font-weight:700">Profile</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 1b TIMELINE ============ -->
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Journal — the day as a timeline, log inline</div>
+      <p class="dv-note">The day is a chronological story: auto events (watch) and manual logs interleave. Quick-log chips sit at the top, so logging is one tap away without leaving Today. Great for habit-builders who think in "what did I do today".</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#f5f7f3;font-family:'Archivo',sans-serif;color:#131712">
+          <div style="flex:1;overflow:hidden;padding:64px 20px 0;display:flex;flex-direction:column;gap:14px">
+            <!-- streak header -->
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div style="font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1;color:#17a253">12</div>
+                <div><div style="font-size:14px;font-weight:800;line-height:1.1">day streak</div><div style="font-size:11px;font-weight:600;color:#6b736b">Thu, Jul 2</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#8a938a"><div style="width:7px;height:7px;border-radius:50%;background:#17c25f"></div>Synced now</div>
+            </div>
+            <!-- quick log chips -->
+            <div style="display:flex;gap:8px;overflow:hidden">
+              <div style="flex:none;display:flex;align-items:center;gap:5px;background:#131712;color:#fff;border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700">+ Workout</div>
+              <div style="flex:none;display:flex;align-items:center;gap:5px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700">+ Run</div>
+              <div style="flex:none;display:flex;align-items:center;gap:5px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700">+ Meal</div>
+              <div style="flex:none;display:flex;align-items:center;gap:5px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700">+ Swim</div>
+              <div style="flex:none;display:flex;align-items:center;gap:5px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700">+ Weight</div>
+            </div>
+            <!-- day summary strip -->
+            <div style="display:flex;gap:14px;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;padding:12px 16px">
+              <div style="flex:1"><div style="font-size:19px;font-weight:800">8,246</div><div style="font-size:10.5px;font-weight:600;color:#6b736b">steps</div></div>
+              <div style="width:1px;background:rgba(0,0,0,.07)"></div>
+              <div style="flex:1"><div style="font-size:19px;font-weight:800">438</div><div style="font-size:10.5px;font-weight:600;color:#6b736b">kcal burned</div></div>
+              <div style="width:1px;background:rgba(0,0,0,.07)"></div>
+              <div style="flex:1"><div style="font-size:19px;font-weight:800">1,430</div><div style="font-size:10.5px;font-weight:600;color:#6b736b">kcal eaten</div></div>
+            </div>
+            <!-- timeline -->
+            <div style="display:flex;flex-direction:column;position:relative;padding-left:2px">
+              <div style="position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:#dfe4dc"></div>
+              <div style="display:flex;gap:14px;padding:8px 0;position:relative">
+                <div style="flex:none;width:12px;height:12px;border-radius:50%;background:#17c25f;margin-top:14px;border:3px solid #f5f7f3;box-sizing:content-box;margin-left:-2px"></div>
+                <div style="flex:1;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+                  <div><div style="font-size:14px;font-weight:800">Morning run</div><div style="font-size:11.5px;color:#6b736b;margin-top:1px">4.2 km · 26:41 · GPS</div></div>
+                  <div style="font-size:11px;font-weight:700;color:#8a938a">7:04</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;padding:8px 0;position:relative">
+                <div style="flex:none;width:12px;height:12px;border-radius:50%;background:#131712;margin-top:14px;border:3px solid #f5f7f3;box-sizing:content-box;margin-left:-2px"></div>
+                <div style="flex:1;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+                  <div><div style="font-size:14px;font-weight:800">Breakfast</div><div style="font-size:11.5px;color:#6b736b;margin-top:1px">Oats + eggs · 420 kcal</div></div>
+                  <div style="font-size:11px;font-weight:700;color:#8a938a">8:32</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;padding:8px 0;position:relative">
+                <div style="flex:none;width:12px;height:12px;border-radius:50%;background:#b9c4b6;margin-top:14px;border:3px solid #f5f7f3;box-sizing:content-box;margin-left:-2px"></div>
+                <div style="flex:1;background:#eef2ec;border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+                  <div><div style="font-size:14px;font-weight:800;color:#4a544a">5,000 steps reached</div><div style="font-size:11.5px;color:#8a938a;margin-top:1px">auto · from watch</div></div>
+                  <div style="font-size:11px;font-weight:700;color:#8a938a">12:45</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:14px;padding:8px 0;position:relative">
+                <div style="flex:none;width:12px;height:12px;border-radius:50%;background:#fff;border:2px dashed #9aa89a;margin-top:14px;margin-left:-2px"></div>
+                <div style="flex:1;background:transparent;border:1.5px dashed #b9c4b6;border-radius:16px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+                  <div><div style="font-size:14px;font-weight:800;color:#6b736b">Strength — planned</div><div style="font-size:11.5px;color:#8a938a;margin-top:1px">Reminder set · tap to start</div></div>
+                  <div style="font-size:11px;font-weight:700;color:#8a938a">18:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- tab bar -->
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 30px 32px;background:rgba(255,255,255,.92);border-top:1px solid rgba(0,0,0,.06)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#131712"></div><span style="font-size:10px;font-weight:700">Journal</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #131712"></div><span style="font-size:10px;font-weight:700">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #131712"></div><span style="font-size:10px;font-weight:700">Goals</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;background:#131712"></div><span style="font-size:10px;font-weight:700">Me</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- ============ 1c BOARD ============ -->
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Board — one-tap tiles, the dashboard IS the logger</div>
+      <p class="dv-note">Most novel. Every tracker is a tile with a big number; tapping a tile logs it (or starts it) instantly, hold for detail. Zero navigation to log — ideal for streak-driven casual users. Auto tiles (steps, sleep) are marked and just fill themselves.</p>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="400,860">
+        <div style="height:100%;display:flex;flex-direction:column;background:#131712;font-family:'Archivo',sans-serif;color:#fff">
+          <div style="flex:1;overflow:hidden;padding:64px 18px 0;display:flex;flex-direction:column;gap:14px">
+            <!-- header -->
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8a938a">Thu, Jul 2 · streak 12</div>
+                <div style="font-size:34px;font-weight:900;letter-spacing:-.02em;line-height:1.05">Log it<span style="color:#17c25f">.</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#8a938a;padding-bottom:6px"><div style="width:7px;height:7px;border-radius:50%;background:#17c25f"></div>Synced</div>
+            </div>
+            <!-- tiles -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="grid-column:1 / -1;background:#1d231c;border-radius:20px;padding:16px;display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Steps · auto</div><div style="font-size:40px;font-weight:900;letter-spacing:-.03em;line-height:1.1">8,246</div></div>
+                <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#3fe07f">72% of 11,500</div><div style="margin-top:8px;width:120px;height:7px;border-radius:4px;background:rgba(255,255,255,.12)"><div style="width:72%;height:100%;border-radius:4px;background:#17c25f"></div></div></div>
+              </div>
+              <div style="background:#17c25f;border-radius:20px;padding:16px;color:#0b1c10;position:relative">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.65">Workout</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">Logged ✓</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;opacity:.7">Upper body · 45 min</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em">STREAK 12</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Meals</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">1,430</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">of 2,200 kcal</div>
+                <div style="margin-top:12px;height:6px;border-radius:3px;background:rgba(255,255,255,.1)"><div style="width:65%;height:100%;border-radius:3px;background:#17c25f"></div></div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Run</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">4.2 km</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">this morning · GPS</div>
+                <div style="margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.04em;color:#3fe07f">STREAK 5</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Weight</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">72.4 kg</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#3fe07f">▾ 0.3 this week</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;opacity:.85">
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Sleep · auto</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">7h 20m</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">from watch</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Swim</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">—</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">last: Mon · 800 m</div>
+              </div>
+              <div style="background:#1d231c;border-radius:20px;padding:16px;position:relative">
+                <div style="position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#3fe07f">+</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a938a">Class</div>
+                <div style="font-size:22px;font-weight:900;margin-top:2px;line-height:1.1">Yoga 18:30</div>
+                <div style="font-size:11.5px;font-weight:600;margin-top:2px;color:#8a938a">booked · reminder on</div>
+              </div>
+            </div>
+            <div style="text-align:center;font-size:11px;font-weight:600;color:#6b736b">Tap a tile to log · hold for details</div>
+          </div>
+          <!-- tab bar -->
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 40px 32px;background:rgba(19,23,18,.94);border-top:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:20px;height:20px;border-radius:6px;background:#17c25f"></div><span style="font-size:10px;font-weight:700;color:#fff">Board</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:6px;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Trends</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;opacity:.4"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #fff"></div><span style="font-size:10px;font-weight:700;color:#fff">Goals</span></div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "go deeper on <a class="dv-oid" href="#1c">1c</a> — show the log flow &amp; progress screen" · "mix <a class="dv-oid" href="#1a">1a</a>'s hero with <a class="dv-oid" href="#1b">1b</a>'s timeline" · "show the offline/sync edge cases"</p>
+</section>
+
+</x-dc>
+</body>
+</html>
