@@ -50,7 +50,14 @@
           "photosPermission": "Streka reads a photo you pick to estimate calories."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#17C25F"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
