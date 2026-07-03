@@ -8,7 +8,7 @@ import { Alert, ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { BackupError, dayOf, parseBackup, serializeBackup } from '@streka/core';
 import { showToast, useLogs, useSettings, useSync } from '../../src/core';
-import { nudgesSupported } from '../../src/nudges';
+import { fireTestNotification, nudgesSupported } from '../../src/nudges';
 import { goBack } from '../../src/lib/nav';
 import { useScreenPad } from '../../src/lib/screenPad';
 import { BigButton } from '../../src/components/BigButton';
@@ -291,6 +291,20 @@ export default function Settings() {
           </View>
         </View>
       </View>
+
+      {/* TEMPORARY: notification delivery check. Remove when done. */}
+      <Group>
+        <Row
+          title="Send a test notification"
+          sub="Temporary. Fires a local notification in ~2s"
+          subColor={colors.accentOnDark}
+          right={<Chevron />}
+          onPress={() =>
+            void fireTestNotification().then((m) => showToast('Notification test', m))
+          }
+          last
+        />
+      </Group>
 
       <Group>
         <Row

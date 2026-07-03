@@ -115,6 +115,41 @@ export async function syncNudgeSchedule(): Promise<void> {
   }
 }
 
+// TEMPORARY (owner asked to verify delivery by hand): fire a local notification
+// a couple of seconds out. Sets a foreground handler so it shows even with the
+// app open. Returns a human-readable status for a toast. Remove when done.
+export async function fireTestNotification(): Promise<string> {
+  const Notifications = await loadNotifications();
+  if (!Notifications) return 'Notifications need the installed app, not Expo Go on Android.';
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('nudges', {
+      name: 'Streak nudges',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    });
+  }
+  let perm = await Notifications.getPermissionsAsync();
+  if (!perm.granted && perm.canAskAgain) perm = await Notifications.requestPermissionsAsync();
+  if (!perm.granted) return 'Notifications are turned off. Turn them on for Streka in system settings.';
+  await Notifications.scheduleNotificationAsync({
+    content: { title: 'Keep the streak.', body: 'Test notification. Delivery works.', sound: false },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 2,
+      repeats: false,
+      channelId: 'nudges',
+    },
+  });
+  return 'Test sent. It should arrive in a couple of seconds.';
+}
+
 let installed = false;
 
 export function installNudgeScheduler(): void {
