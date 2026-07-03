@@ -1,9 +1,9 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Share, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { showToast, useLogs, useSettings, useSync } from '../../src/core';
+import { useSettings, useSync } from '../../src/core';
 import { nudgesSupported } from '../../src/nudges';
 import { goBack } from '../../src/lib/nav';
 import { useScreenPad } from '../../src/lib/screenPad';
@@ -95,7 +95,6 @@ const GOALS: Record<'kcal' | 'steps', { title: string; unit: string; step: numbe
 export default function Settings() {
   const settings = useSettings();
   const online = useSync((s) => s.online);
-  const entries = useLogs((s) => s.entries);
   const pad = useScreenPad();
   const [timeSheet, setTimeSheet] = useState(false);
   const [draftTime, setDraftTime] = useState(() => {
@@ -122,33 +121,6 @@ export default function Settings() {
       <Chevron />
     </View>
   );
-
-  const exportCsv = () => {
-    const header = 'id,timestamp,day,tracker,source,kind,value';
-    const rows = entries
-      .filter((e) => !e.deleted)
-      .map((e) => {
-        const d = e.data;
-        const value =
-          d.kind === 'workout'
-            ? `${d.name} ${d.mins}min`
-            : d.kind === 'meal'
-              ? `${d.kcal}kcal`
-              : d.kind === 'run'
-                ? `${d.km}km`
-                : d.kind === 'swim'
-                  ? `${d.m}m`
-                  : d.kind === 'weight'
-                    ? `${d.kg}kg`
-                    : d.kind === 'steps'
-                      ? `${d.count}`
-                      : d.kind === 'sleep'
-                        ? `${d.hours}h${d.minutes}m`
-                        : 'done';
-        return `${e.id},${new Date(e.ts).toISOString()},${e.day},${e.tracker},${e.source},${d.kind},${value}`;
-      });
-    void Share.share({ message: [header, ...rows].join('\n') });
-  };
 
   return (
     <ScrollView
@@ -299,23 +271,16 @@ export default function Settings() {
         />
       </Group>
 
-      <Group>
-        <Row
-          title="Export my data"
-          sub="Everything as CSV — it's yours"
-          right={<Chevron />}
-          onPress={exportCsv}
-          last={!settings.hasAccount}
-        />
-        {settings.hasAccount ? (
+      {settings.hasAccount ? (
+        <Group>
           <Row
             title="Sign out"
             sub="Your data stays on this phone and in your account"
             onPress={() => settings.set({ hasAccount: false })}
             last
           />
-        ) : null}
-      </Group>
+        </Group>
+      ) : null}
 
       <Txt size={10.5} w={600} color="#4a544a" center style={{ paddingTop: 2, paddingBottom: 10 }}>
         Streka 1.0 · made for keeping up
