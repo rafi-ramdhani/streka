@@ -24,9 +24,10 @@ endpoints**; it proves the server boots, the schema migrates, and a log row roun
 
 - **Package manager**: pnpm workspaces (unchanged). Bun was considered and dropped to avoid
   re-locking the stable installed mobile build.
-- **Task orchestration**: Turborepo, layered on top of pnpm. `build`/`dev`/`test`/`typecheck`
-  pipelines with `dependsOn` ordering and caching. Adopted now (not deferred) since the task
-  graph grows with `apps/server` and the Next.js `apps/web`.
+- **Task orchestration**: Turborepo, layered on top of pnpm. `build`/`test`/`dev`
+  pipelines with `dependsOn` ordering and caching (`typecheck` stays on the existing pnpm
+  form, since packages have no per-package `typecheck` script). Adopted now (not deferred)
+  since the task graph grows with `apps/server` and the Next.js `apps/web`.
 - **Runtime**: Node, via `@hono/node-server`.
 - **API framework**: Hono.
 - **DB**: our own managed Postgres. Local dev via Docker Postgres.
@@ -42,7 +43,7 @@ endpoints**; it proves the server boots, the schema migrates, and a log row roun
 ## Deliverables
 
 1. New `apps/server` pnpm workspace: `package.json`, `tsconfig.json`, source layout, scripts
-   (`dev`, `build`, `typecheck`, `test`, `db:generate`, `db:migrate`).
+   (`dev`, `build`, `start`, `test`, `db:generate`, `db:migrate`).
 2. Hono app split into a testable `app.ts` (routes) and a thin `index.ts` (starts the Node
    server), so tests exercise the app without binding a port.
 3. `GET /health`: runs `select 1` and returns `{ ok: true, db: "up" }` (or 503 on failure).
@@ -57,12 +58,12 @@ endpoints**; it proves the server boots, the schema migrates, and a log row roun
 8. Tests: `/health` returns 200; migrations apply cleanly; a `log_entries` insert/select
    round-trips through Drizzle. Tests run against an in-process Postgres (pglite) so CI needs
    no Docker; the Docker Postgres is for real local dev.
-9. Root **`turbo.json`** with `build`, `dev`, `test`, `typecheck` pipelines (`build` uses
-   `dependsOn: ["^build"]`; `test`/`typecheck` depend on upstream builds; `dev` is
-   long-running and uncached). `turbo` added as a root dev dependency, and the root
-   `package.json` `test`/`typecheck` scripts switch from `pnpm -r` / `--filter` to
-   `turbo run ...`. `apps/server`'s package scripts become the tasks Turbo drives. Mobile's
-   build is untouched (its `test`/`typecheck` tasks just join the graph).
+9. Root **`turbo.json`** with `build`, `test`, `dev` pipelines (`build` uses
+   `dependsOn: ["^build"]` and outputs `dist/**`; `test` depends on upstream builds; `dev`
+   is long-running and uncached). `turbo` added as a root dev dependency, and the root
+   `package.json` `build`/`dev`/`test` scripts delegate to `turbo run ...`. `typecheck`
+   stays on the existing `pnpm --filter '!landing' -r exec tsc --noEmit` form. `apps/server`'s
+   package scripts become the tasks Turbo drives; mobile's build is untouched.
 
 ## Schema (Postgres via Drizzle)
 
