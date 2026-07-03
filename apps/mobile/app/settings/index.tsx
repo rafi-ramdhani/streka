@@ -10,6 +10,7 @@ import { BackupError, dayOf, parseBackup, serializeBackup } from '@streka/core';
 import { showToast, useLogs, useSettings, useSync } from '../../src/core';
 import { healthAppName, requestHealthPermissions } from '../../src/health';
 import { nudgesSupported } from '../../src/nudges';
+import { goBack } from '../../src/lib/nav';
 import { useScreenPad } from '../../src/lib/screenPad';
 import { BigButton } from '../../src/components/BigButton';
 import { LogSheet } from '../../src/components/LogSheet';
@@ -218,6 +219,27 @@ export default function Settings() {
         paddingBottom: 30,
       }}
     >
+      <Pressable98
+        onPress={() => goBack()}
+        hitSlop={12}
+        scaleTo={0.9}
+        style={{ alignSelf: 'flex-start', paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+      >
+        <Svg width={9} height={16} viewBox="0 0 9 16">
+          <Path
+            d="M8 1L1 8l7 7"
+            stroke={colors.mutedDark}
+            strokeWidth={2.5}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+        <Txt size={13} w={800} color={colors.mutedDark}>
+          Board
+        </Txt>
+      </Pressable98>
+
       <View
         style={{
           flexDirection: 'row',

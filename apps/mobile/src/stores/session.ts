@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { lastTopSet, summarizeSession } from '@streka/core';
 import { core, logActivity } from '../core';
 import { kvStorage } from '../db';
+import { useCustomWorkouts } from './customWorkouts';
 
 // Live workout session (Proto logic 67-86): local-only, saved set-by-set.
 export interface SessionSet {
@@ -62,8 +63,19 @@ export const TEMPLATES: Record<string, { name: string; sets: string[] }[]> = {
 
 const EMPTY_PLAN = [{ name: 'Freestyle', sets: ['Work set', 'Work set', 'Work set'] }];
 
+// Built-in template, else a saved custom workout of that name, else freestyle.
+// Custom exercises start at three work sets; the label-upgrade below swaps in
+// the user's last top set once there is one.
+function planFor(name: string): { name: string; sets: string[] }[] {
+  if (TEMPLATES[name]) return TEMPLATES[name]!;
+  const custom = useCustomWorkouts.getState().workouts.find((w) => w.name === name);
+  if (custom && custom.exercises.length > 0)
+    return custom.exercises.map((ex) => ({ name: ex, sets: ['Work set', 'Work set', 'Work set'] }));
+  return EMPTY_PLAN;
+}
+
 function buildExercises(name: string): SessionExercise[] {
-  const plan = TEMPLATES[name] ?? EMPTY_PLAN;
+  const plan = planFor(name);
   const entries = core.useLogs.getState().entries;
   return plan.map((ex) => {
     const top = lastTopSet(entries, ex.name);

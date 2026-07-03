@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, ScrollView, View, useWindowDimensions } from 'react-native';
+import { ScrollView, View, useWindowDimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import {
   dayOf,
@@ -15,7 +15,7 @@ import {
   type TrackerId,
 } from '@streka/core';
 import { isDemoData } from '@streka/core';
-import { logActivity, showToast, useLogs, useSettings } from '../../src/core';
+import { showToast, useLogs, useSettings } from '../../src/core';
 import { healthAppName, useHealthToday } from '../../src/health';
 import { useScreenPad } from '../../src/lib/screenPad';
 import { useToday } from '../../src/lib/useToday';
@@ -29,8 +29,10 @@ import { Toast } from '../../src/components/Toast';
 import { Txt } from '../../src/components/Txt';
 import { Wordmark } from '../../src/components/Wordmark';
 import { LogSheet } from '../../src/components/LogSheet';
+import { ClassSheet } from '../../src/sheets/ClassSheet';
 import { MealSheet } from '../../src/sheets/MealSheet';
 import { RunSheet } from '../../src/sheets/RunSheet';
+import { StepsSheet } from '../../src/sheets/StepsSheet';
 import { SwimSheet } from '../../src/sheets/SwimSheet';
 import { WeightSheet } from '../../src/sheets/WeightSheet';
 import { WorkoutSheet } from '../../src/sheets/WorkoutSheet';
@@ -39,7 +41,7 @@ import { useOnboarding } from '../../src/stores/onboarding';
 import { useSession } from '../../src/stores/session';
 import { colors } from '../../src/theme';
 
-type SheetName = 'workout' | 'meal' | 'run' | 'weight' | 'swim';
+type SheetName = 'workout' | 'meal' | 'run' | 'weight' | 'swim' | 'steps' | 'class';
 
 const SHEET_TITLES: Record<SheetName, string> = {
   workout: 'Log workout',
@@ -47,6 +49,8 @@ const SHEET_TITLES: Record<SheetName, string> = {
   run: 'Log a run',
   weight: 'Update weight',
   swim: 'Log a swim',
+  steps: 'Log steps',
+  class: 'Log a class',
 };
 
 function lastBefore(
@@ -69,14 +73,10 @@ function lastBefore(
 function SettingsGear() {
   return (
     <Pressable98 onPress={() => router.push('/settings')} hitSlop={12} scaleTo={0.9}>
-      <Svg width={19} height={19} viewBox="0 0 24 24">
+      <Svg width={20} height={20} viewBox="0 0 24 24">
         <Path
-          d="M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 13a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"
-          stroke={colors.mutedDark}
-          strokeWidth={2}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.49.49 0 00-.48-.41h-3.84a.49.49 0 00-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.49.49 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 110-7.2 3.6 3.6 0 010 7.2z"
+          fill={colors.mutedDark}
         />
       </Svg>
     </Pressable98>
@@ -111,27 +111,22 @@ export default function Board() {
   const half = (width - 36 - 10) / 2;
   const full = width - 36;
 
-  const steps = health.steps;
+  // Steps are logged by hand in this build; a manual log for today wins over
+  // any auto value, and the newest one is the day's total.
+  const loggedSteps = useMemo(() => {
+    let latest: LogEntry | undefined;
+    for (const e of entries) {
+      if (e.deleted || e.day !== today || e.data.kind !== 'steps') continue;
+      if (!latest || e.ts > latest.ts) latest = e;
+    }
+    return latest?.data.kind === 'steps' ? latest.data.count : undefined;
+  }, [entries, today]);
+  const steps = loggedSteps ?? health.steps;
   const stepsPct = Math.round(((steps ?? 0) / settings.stepsGoalDay) * 100);
   const sleep = health.sleep;
 
-  // Steps and sleep have no automatic source on this build (pedometer is
-  // iOS-only; Health Connect / HealthKit sleep need a later build). Tapping a
-  // dashed tile explains why and points at hiding it, so the honest dash is
-  // never a dead end.
-  const stepsInfo = () => {
-    if (Platform.OS === 'android')
-      return showToast(
-        'Steps stay manual for now',
-        'Automatic steps need Health Connect, which arrives in a later build. You can hide this tile in Settings, under My board.',
-      );
-    if (!settings.healthConnected)
-      return showToast(
-        'Steps stay manual',
-        'Connect Apple Health in Settings to fill steps automatically.',
-      );
-    return showToast('Steps from this phone', 'Counted from the motion sensor since midnight.');
-  };
+  // Sleep has no source on this build yet; tapping the tile explains why and
+  // points at hiding it, so the dash is never a dead end.
   const sleepInfo = () =>
     showToast(
       'Sleep fills in later',
@@ -239,7 +234,8 @@ export default function Board() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {settings.picked.steps ? (
             <Pressable98
-              onPress={stepsInfo}
+              onPress={() => setSheet('steps')}
+              onLongPress={holdFor('steps')}
               scaleTo={0.98}
               style={{
                 width: full,
@@ -253,15 +249,19 @@ export default function Board() {
             >
               <View>
                 <Txt size={11} w={700} ls={0.06} upper color={colors.mutedDark}>
-                  {settings.healthConnected ? 'Steps · auto' : 'Steps · phone only'}
+                  {loggedSteps !== undefined
+                    ? 'Steps · logged'
+                    : settings.healthConnected
+                      ? 'Steps · auto'
+                      : 'Steps · tap to log'}
                 </Txt>
                 <Txt size={38} w={900} ls={-0.03} lineHeight={1.1}>
-                  {steps === null ? '—' : steps.toLocaleString('en-US')}
+                  {steps == null ? '—' : steps.toLocaleString('en-US')}
                 </Txt>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Txt size={12} w={700} color={colors.accentOnDark}>
-                  {steps === null
+                  {steps == null
                     ? `goal ${settings.stepsGoalDay.toLocaleString('en-US')}`
                     : `${stepsPct}% of ${settings.stepsGoalDay.toLocaleString('en-US')}`}
                 </Txt>
@@ -415,17 +415,7 @@ export default function Board() {
               }
               plus={!board.classDone}
               onLongPress={holdFor('classes')}
-              onPress={
-                board.classDone
-                  ? undefined
-                  : () =>
-                      logActivity({
-                        tracker: 'classes',
-                        source: 'manual',
-                        data: { kind: 'class', name: demo ? 'Yoga' : undefined },
-                        title: 'Class logged',
-                      })
-              }
+              onPress={board.classDone ? undefined : () => setSheet('class')}
             />
           ) : null}
 
@@ -477,6 +467,10 @@ export default function Board() {
         {sheet === 'meal' ? <MealSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'run' ? <RunSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'swim' ? <SwimSheet onClose={() => setSheet(null)} /> : null}
+        {sheet === 'steps' ? (
+          <StepsSheet initial={loggedSteps} onClose={() => setSheet(null)} />
+        ) : null}
+        {sheet === 'class' ? <ClassSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'weight' ? (
           <WeightSheet
             initial={board.weightKg ?? 72.4}

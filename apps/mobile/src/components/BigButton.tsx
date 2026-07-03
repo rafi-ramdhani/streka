@@ -10,6 +10,7 @@ export function BigButton({
   color = colors.ink,
   pad = 16,
   size = 14,
+  disabled,
 }: {
   label: string;
   onPress: () => void;
@@ -17,11 +18,19 @@ export function BigButton({
   color?: string;
   pad?: number;
   size?: number;
+  disabled?: boolean;
 }) {
   return (
     <Pressable98
       onPress={onPress}
-      style={{ backgroundColor: bg, borderRadius: 16, padding: pad, alignItems: 'center' }}
+      disabled={disabled}
+      style={{
+        backgroundColor: bg,
+        borderRadius: 16,
+        padding: pad,
+        alignItems: 'center',
+        opacity: disabled ? 0.4 : 1,
+      }}
     >
       <Txt size={size} w={900} ls={0.02} color={color}>
         {label}

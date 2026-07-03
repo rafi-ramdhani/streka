@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import {
@@ -207,6 +208,7 @@ export default function Goals() {
       </Card>
 
       <Pressable98
+        onPress={() => router.push('/settings')}
         style={{
           borderWidth: 1.5,
           borderStyle: 'dashed',
@@ -217,7 +219,7 @@ export default function Goals() {
         }}
       >
         <Txt size={13} w={800} color={colors.mutedDark}>
-          + New goal
+          Adjust your goals
         </Txt>
       </Pressable98>
     </ScrollView>
