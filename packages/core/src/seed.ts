@@ -81,7 +81,6 @@ export function seedDemo(today: string): {
     settings: {
       onboarded: true,
       hasAccount: true,
-      healthConnected: true,
       picked: {
         steps: true,
         workouts: true,

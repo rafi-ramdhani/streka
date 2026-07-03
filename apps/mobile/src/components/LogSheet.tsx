@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { useEffect, useRef } from 'react';
-import { Animated, Modal, Pressable, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Keyboard, Modal, Platform, Pressable, View } from 'react-native';
 import { colors } from '../theme';
 import { Txt } from './Txt';
 import { formatDateLine } from '../lib/dates';
@@ -27,6 +27,20 @@ export function LogSheet({
     }
   }, [visible, anim]);
 
+  // Lift the sheet above the keyboard so its inputs and Save button stay
+  // visible when a text field is focused.
+  const [kbHeight, setKbHeight] = useState(0);
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvt, (e) => setKbHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener(hideEvt, () => setKbHeight(0));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <Pressable
@@ -38,7 +52,7 @@ export function LogSheet({
           position: 'absolute',
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: kbHeight,
           backgroundColor: colors.tile,
           borderTopLeftRadius: 28,
           borderTopRightRadius: 28,

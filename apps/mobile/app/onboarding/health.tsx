@@ -6,7 +6,6 @@ import { Check } from '../../src/components/Check';
 import { ObFrame } from '../../src/components/ObFrame';
 import { SlashMark } from '../../src/components/SlashMark';
 import { Txt } from '../../src/components/Txt';
-import { useOnboarding } from '../../src/stores/onboarding';
 import { colors } from '../../src/theme';
 
 function IconBox({ children }: { children: ReactNode }) {
@@ -52,9 +51,7 @@ function Line({ title, sub }: { title: string; sub: string }) {
 // health source, so it now sets expectations for the manual, on-device model
 // instead. The step is kept so the flow and progress bar are unchanged.
 export default function Health() {
-  const setHealth = useOnboarding((s) => s.setHealth);
   const go = () => {
-    setHealth(false);
     router.push('/onboarding/account');
   };
 

@@ -20,12 +20,10 @@ interface OnboardingState {
   picked: Record<TrackerId, boolean>;
   rhythmDays: 2 | 3 | 4 | 5 | 6;
   nudgeEnabled: boolean;
-  healthConnected: boolean;
   coachPending: boolean;
   toggle: (id: TrackerId) => void;
   setRhythm: (d: 2 | 3 | 4 | 5 | 6) => void;
   toggleNudge: () => void;
-  setHealth: (on: boolean) => void;
   dismissCoach: () => void;
 }
 
@@ -42,12 +40,10 @@ export const useOnboarding = create<OnboardingState>((set) => ({
   },
   rhythmDays: 3,
   nudgeEnabled: true,
-  healthConnected: false,
   coachPending: false,
   toggle: (id) => set((s) => ({ picked: { ...s.picked, [id]: !s.picked[id] } })),
   setRhythm: (rhythmDays) => set({ rhythmDays }),
   toggleNudge: () => set((s) => ({ nudgeEnabled: !s.nudgeEnabled })),
-  setHealth: (healthConnected) => set({ healthConnected }),
   dismissCoach: () => set({ coachPending: false }),
 }));
 
@@ -60,7 +56,6 @@ export function enterApp(hasAccount: boolean) {
     picked: d.picked,
     rhythmDays: d.rhythmDays,
     nudge: { enabled: d.nudgeEnabled, time: '17:30' },
-    healthConnected: d.healthConnected,
   });
   core.useSync.getState().setOnline(hasAccount);
   useOnboarding.setState({ coachPending: true });

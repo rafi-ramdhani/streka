@@ -31,7 +31,6 @@ describe('seedDemo', () => {
   it('marks the demo account settings', () => {
     const { settings } = seedDemo(TODAY);
     expect(settings.hasAccount).toBe(true);
-    expect(settings.healthConnected).toBe(true);
     expect(settings.onboarded).toBe(true);
     expect(Object.values(settings.picked!).every(Boolean)).toBe(true);
   });

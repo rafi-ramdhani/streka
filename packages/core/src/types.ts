@@ -85,7 +85,6 @@ export interface Settings {
   picked: Record<TrackerId, boolean>;
   rhythmDays: 2 | 3 | 4 | 5 | 6;
   nudge: { enabled: boolean; time: string };
-  healthConnected: boolean;
   hasAccount: boolean;
   units: 'metric' | 'imperial';
   kcalGoal: number;
@@ -107,7 +106,6 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   rhythmDays: 3,
   nudge: { enabled: true, time: '17:30' },
-  healthConnected: false,
   hasAccount: false,
   units: 'metric',
   kcalGoal: 2200,
