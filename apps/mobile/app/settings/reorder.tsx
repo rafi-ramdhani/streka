@@ -33,6 +33,13 @@ const GAP = 8;
 
 type Positions = Record<string, number>;
 
+// Resting Y for a slot index. A worklet so it can run on the UI thread inside
+// the gesture and animation callbacks.
+function slotY(index: number): number {
+  'worklet';
+  return index * (ROW_H + GAP);
+}
+
 // Shift positions when the dragged row moves from -> to, sliding the rows in
 // between. Runs on the UI thread.
 function objectMove(positions: Positions, from: number, to: number): Positions {
@@ -74,8 +81,7 @@ function DragRow({
   count: number;
   onCommit: () => void;
 }) {
-  const slot = (i: number) => i * (ROW_H + GAP);
-  const top = useSharedValue(slot(positions.value[id] ?? 0));
+  const top = useSharedValue(slotY(positions.value[id] ?? 0));
   const isActive = useSharedValue(false);
   const startTop = useSharedValue(0);
 
@@ -83,7 +89,7 @@ function DragRow({
   useAnimatedReaction(
     () => positions.value[id] ?? 0,
     (pos) => {
-      if (!isActive.value) top.value = withSpring(slot(pos), { damping: 20 });
+      if (!isActive.value) top.value = withSpring(slotY(pos), { damping: 20 });
     },
   );
 
@@ -103,7 +109,7 @@ function DragRow({
       if (next !== cur) positions.value = objectMove(positions.value, cur, next);
     })
     .onEnd(() => {
-      top.value = withSpring(slot(positions.value[id] ?? 0), { damping: 20 });
+      top.value = withSpring(slotY(positions.value[id] ?? 0), { damping: 20 });
     })
     .onFinalize(() => {
       if (isActive.value) {
