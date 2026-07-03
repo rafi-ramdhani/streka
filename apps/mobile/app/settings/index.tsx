@@ -8,7 +8,6 @@ import { Alert, ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { BackupError, dayOf, parseBackup, serializeBackup } from '@streka/core';
 import { showToast, useLogs, useSettings, useSync } from '../../src/core';
-import { healthAppName, requestHealthPermissions } from '../../src/health';
 import { nudgesSupported } from '../../src/nudges';
 import { goBack } from '../../src/lib/nav';
 import { useScreenPad } from '../../src/lib/screenPad';
@@ -300,6 +299,12 @@ export default function Settings() {
           onPress={() => router.push('/settings/board')}
         />
         <Row
+          title="Reorder board"
+          sub="Drag tiles into the order you want"
+          right={<Chevron />}
+          onPress={() => router.push('/settings/reorder')}
+        />
+        <Row
           title="Weekly rhythm"
           right={rightLabel(`${settings.rhythmDays} active days`)}
           onPress={() => router.push('/settings/rhythm')}
@@ -326,17 +331,6 @@ export default function Settings() {
       </Group>
 
       <Group>
-        <Row
-          title={healthAppName}
-          sub={settings.healthConnected ? 'Connected · steps, sleep, runs' : 'Not connected'}
-          subColor={settings.healthConnected ? colors.accentOnDark : colors.mutedDark}
-          right={<Chevron />}
-          onPress={() => {
-            const on = !settings.healthConnected;
-            settings.set({ healthConnected: on });
-            if (on) void requestHealthPermissions();
-          }}
-        />
         <Row
           title="Units"
           right={rightLabel(settings.units === 'metric' ? 'kg · km' : 'lb · mi')}

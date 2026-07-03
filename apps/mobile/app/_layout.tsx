@@ -11,6 +11,7 @@ import {
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { core, useLogs } from '../src/core';
 import { installNudgeScheduler } from '../src/nudges';
@@ -47,7 +48,7 @@ export default function RootLayout() {
   if (!loaded || !hydrated) return null;
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -59,6 +60,6 @@ export default function RootLayout() {
         <Stack.Screen name="run" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="scan" options={{ animation: 'fade' }} />
       </Stack>
-    </>
+    </GestureHandlerRootView>
   );
 }

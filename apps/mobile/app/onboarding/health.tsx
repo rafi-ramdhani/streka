@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
-import { BigButton, LinkButton } from '../../src/components/BigButton';
+import { BigButton } from '../../src/components/BigButton';
 import { Check } from '../../src/components/Check';
 import { ObFrame } from '../../src/components/ObFrame';
+import { SlashMark } from '../../src/components/SlashMark';
 import { Txt } from '../../src/components/Txt';
-import { healthAppName, requestHealthPermissions } from '../../src/health';
 import { useOnboarding } from '../../src/stores/onboarding';
 import { colors } from '../../src/theme';
 
@@ -30,99 +30,62 @@ function Divider() {
   return <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,.07)' }} />;
 }
 
+function Line({ title, sub }: { title: string; sub: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <IconBox>
+        <Check width={16} />
+      </IconBox>
+      <View style={{ flex: 1 }}>
+        <Txt size={14} w={900}>
+          {title}
+        </Txt>
+        <Txt size={11.5} w={600} color={colors.mutedDark}>
+          {sub}
+        </Txt>
+      </View>
+    </View>
+  );
+}
+
+// Onboarding step 4 (was "connect your watch"). This build has no automatic
+// health source, so it now sets expectations for the manual, on-device model
+// instead. The step is kept so the flow and progress bar are unchanged.
 export default function Health() {
   const setHealth = useOnboarding((s) => s.setHealth);
-  const go = (on: boolean) => {
-    setHealth(on);
-    if (on) void requestHealthPermissions();
+  const go = () => {
+    setHealth(false);
     router.push('/onboarding/account');
   };
 
   return (
     <ObFrame
       step={4}
-      headline={'Let your watch do\nthe boring logging'}
-      sub={`Steps and sleep fill in automatically from ${healthAppName}. Nothing leaves your phone without sync on.`}
-      footer={
-        <>
-          <BigButton label={`CONNECT ${healthAppName.toUpperCase()}`} onPress={() => go(true)} />
-          <LinkButton label="Skip — log everything myself" onPress={() => go(false)} pad={8} />
-        </>
-      }
+      headline={'Everything stays\non this phone'}
+      sub="No account needed to start. Tap a tile, it is logged. Your streak lives right here."
+      footer={<BigButton label="CONTINUE" onPress={go} />}
     >
       <View style={{ backgroundColor: colors.tile, borderRadius: 20, padding: 18, gap: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <IconBox>
-            <View
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: 9,
-                borderWidth: 3,
-                borderColor: colors.accentOnDark,
-              }}
-            />
+            <SlashMark size={18} color={colors.accentOnDark} />
           </IconBox>
           <View style={{ flex: 1 }}>
             <Txt size={14} w={900}>
-              Steps & activity
+              One tap to log
             </Txt>
             <Txt size={11.5} w={600} color={colors.mutedDark}>
-              auto, from watch or phone
+              every tile logs in a tap, no forms
             </Txt>
           </View>
-          <Check width={14} />
         </View>
         <Divider />
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <IconBox>
-            <View
-              style={{
-                width: 18,
-                height: 10,
-                borderRadius: 5,
-                backgroundColor: colors.accentOnDark,
-              }}
-            />
-          </IconBox>
-          <View style={{ flex: 1 }}>
-            <Txt size={14} w={900}>
-              Sleep
-            </Txt>
-            <Txt size={11.5} w={600} color={colors.mutedDark}>
-              auto, if your watch tracks it
-            </Txt>
-          </View>
-          <Check width={14} />
-        </View>
+        <Line title="Private by default" sub="your data never leaves this device" />
         <Divider />
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <IconBox>
-            <View
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 4,
-                borderWidth: 3,
-                borderColor: colors.mutedDark,
-              }}
-            />
-          </IconBox>
-          <View style={{ flex: 1 }}>
-            <Txt size={14} w={900} color="#c7cec6">
-              Workouts from watch
-            </Txt>
-            <Txt size={11.5} w={600} color={colors.mutedLight}>
-              optional — you can log by hand
-            </Txt>
-          </View>
-          <Txt size={11} w={800} color={colors.mutedDark}>
-            OFF
-          </Txt>
-        </View>
+        <Line title="Streak first" sub="one log a day keeps it alive" />
       </View>
       <Txt size={12} w={600} color={colors.mutedLight} lineHeight={1.5}>
-        No watch? Everything works with manual logging — that's what the big tiles are for.
+        Steps and sleep are logged by hand too. Accounts and cross-device sync arrive later.
       </Txt>
     </ObFrame>
   );

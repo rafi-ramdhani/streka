@@ -15,7 +15,7 @@
     "android": {
       "package": "com.streka.app",
       "adaptiveIcon": {
-        "backgroundColor": "#17C25F",
+        "backgroundColor": "#131712",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

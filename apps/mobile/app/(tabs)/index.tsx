@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import {
@@ -15,8 +15,8 @@ import {
   type TrackerId,
 } from '@streka/core';
 import { isDemoData } from '@streka/core';
-import { showToast, useLogs, useSettings } from '../../src/core';
-import { healthAppName, useHealthToday } from '../../src/health';
+import { useLogs, useSettings } from '../../src/core';
+import { useHealthToday } from '../../src/health';
 import { useScreenPad } from '../../src/lib/screenPad';
 import { useToday } from '../../src/lib/useToday';
 import { CoachMark } from '../../src/components/CoachMark';
@@ -32,6 +32,7 @@ import { LogSheet } from '../../src/components/LogSheet';
 import { ClassSheet } from '../../src/sheets/ClassSheet';
 import { MealSheet } from '../../src/sheets/MealSheet';
 import { RunSheet } from '../../src/sheets/RunSheet';
+import { SleepSheet } from '../../src/sheets/SleepSheet';
 import { StepsSheet } from '../../src/sheets/StepsSheet';
 import { SwimSheet } from '../../src/sheets/SwimSheet';
 import { WeightSheet } from '../../src/sheets/WeightSheet';
@@ -39,9 +40,10 @@ import { WorkoutSheet } from '../../src/sheets/WorkoutSheet';
 import { formatDateLine, shortWeekday } from '../../src/lib/dates';
 import { useOnboarding } from '../../src/stores/onboarding';
 import { useSession } from '../../src/stores/session';
+import { useTileOrder } from '../../src/stores/tileOrder';
 import { colors } from '../../src/theme';
 
-type SheetName = 'workout' | 'meal' | 'run' | 'weight' | 'swim' | 'steps' | 'class';
+type SheetName = 'workout' | 'meal' | 'run' | 'weight' | 'swim' | 'steps' | 'class' | 'sleep';
 
 const SHEET_TITLES: Record<SheetName, string> = {
   workout: 'Log workout',
@@ -51,6 +53,7 @@ const SHEET_TITLES: Record<SheetName, string> = {
   swim: 'Log a swim',
   steps: 'Log steps',
   class: 'Log a class',
+  sleep: 'Log sleep',
 };
 
 function lastBefore(
@@ -86,6 +89,7 @@ function SettingsGear() {
 export default function Board() {
   const { width } = useWindowDimensions();
   const settings = useSettings();
+  const order = useTileOrder((s) => s.order);
   const entries = useLogs((s) => s.entries);
   const coachPending = useOnboarding((s) => s.coachPending);
   const dismissCoach = useOnboarding((s) => s.dismissCoach);
@@ -123,15 +127,19 @@ export default function Board() {
   }, [entries, today]);
   const steps = loggedSteps ?? health.steps;
   const stepsPct = Math.round(((steps ?? 0) / settings.stepsGoalDay) * 100);
-  const sleep = health.sleep;
 
-  // Sleep has no source on this build yet; tapping the tile explains why and
-  // points at hiding it, so the dash is never a dead end.
-  const sleepInfo = () =>
-    showToast(
-      'Sleep fills in later',
-      `Automatic sleep needs ${healthAppName}, which arrives in a later build. You can hide this tile in Settings, under My board.`,
-    );
+  // Sleep is logged by hand too; the newest entry today is last night's total.
+  const loggedSleep = useMemo(() => {
+    let latest: LogEntry | undefined;
+    for (const e of entries) {
+      if (e.deleted || e.day !== today || e.data.kind !== 'sleep') continue;
+      if (!latest || e.ts > latest.ts) latest = e;
+    }
+    return latest?.data.kind === 'sleep'
+      ? { h: latest.data.hours, m: latest.data.minutes }
+      : undefined;
+  }, [entries, today]);
+  const sleep = loggedSleep ?? health.sleep;
 
   const lastWorkout = lastBefore(entries, today, 'workout');
   const lastRun = lastBefore(entries, today, 'run');
@@ -187,6 +195,213 @@ export default function Board() {
     </View>
   );
 
+  // One tile per tracker, rendered in the user's saved order (Settings ->
+  // Reorder board). The picked filter happens at the call site.
+  const renderTile = (id: TrackerId): ReactNode => {
+    switch (id) {
+      case 'steps':
+        return (
+          <Pressable98
+            onPress={() => setSheet('steps')}
+            onLongPress={holdFor('steps')}
+            scaleTo={0.98}
+            style={{
+              width: full,
+              backgroundColor: colors.tile,
+              borderRadius: 20,
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <View>
+              <Txt size={11} w={700} ls={0.06} upper color={colors.mutedDark}>
+                {loggedSteps !== undefined
+                  ? 'Steps · logged'
+                  : steps != null
+                    ? 'Steps · auto'
+                    : 'Steps · tap to log'}
+              </Txt>
+              <Txt size={38} w={900} ls={-0.03} lineHeight={1.1}>
+                {steps == null ? '—' : steps.toLocaleString('en-US')}
+              </Txt>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Txt size={12} w={700} color={colors.accentOnDark}>
+                {steps == null
+                  ? `goal ${settings.stepsGoalDay.toLocaleString('en-US')}`
+                  : `${stepsPct}% of ${settings.stepsGoalDay.toLocaleString('en-US')}`}
+              </Txt>
+              {progressBar(stepsPct, 120, 7)}
+            </View>
+          </Pressable98>
+        );
+      case 'workouts':
+        return board.workout ? (
+          <Tile
+            width={half}
+            label="Workout"
+            title="Logged ✓"
+            sub={
+              board.workout.mins > 0
+                ? `${board.workout.name} · ${board.workout.mins} min`
+                : board.workout.name
+            }
+            green
+            onLongPress={holdFor('workouts')}
+            footer={
+              <Txt size={11} w={800} ls={0.04} color={colors.ink} style={{ marginTop: 12 }}>
+                STREAK {streakN}
+              </Txt>
+            }
+          />
+        ) : (
+          <Tile
+            width={half}
+            label="Workout"
+            title="—"
+            sub={
+              fresh
+                ? 'nothing yet'
+                : lastWorkout?.data.kind === 'workout'
+                  ? `last: ${shortWeekday(lastWorkout.day)} · ${lastWorkout.data.name}`
+                  : 'nothing yet'
+            }
+            plus
+            plusTinted
+            border
+            onPress={() => (sessionActive ? router.push('/session') : setSheet('workout'))}
+            onLongPress={holdFor('workouts')}
+            footer={
+              <Txt size={11} w={800} ls={0.04} color={colors.accentOnDark} style={{ marginTop: 12 }}>
+                {sessionActive ? 'SESSION LIVE · TAP TO RESUME' : 'TAP TO START'}
+              </Txt>
+            }
+          />
+        );
+      case 'meals':
+        return (
+          <Tile
+            width={half}
+            label="Meals"
+            title={board.mealsKcal > 0 ? board.mealsKcal.toLocaleString('en-US') : '—'}
+            sub={
+              board.mealsKcal > 0
+                ? `of ${settings.kcalGoal.toLocaleString('en-US')} kcal`
+                : 'tap + to log a meal'
+            }
+            plus
+            onPress={() => setSheet('meal')}
+            onLongPress={holdFor('meals')}
+            footer={progressBar(Math.round((board.mealsKcal / settings.kcalGoal) * 100), half - 32, 6)}
+          />
+        );
+      case 'running':
+        return (
+          <Tile
+            width={half}
+            label="Run"
+            title={board.runKm !== undefined ? formatDistance(board.runKm, settings.units) : '—'}
+            sub={
+              board.runKm !== undefined
+                ? 'logged today'
+                : fresh
+                  ? 'nothing yet'
+                  : lastRun?.data.kind === 'run'
+                    ? `last: ${shortWeekday(lastRun.day)} · ${formatDistance(lastRun.data.km, settings.units)}`
+                    : 'nothing yet'
+            }
+            plus
+            onPress={() => setSheet('run')}
+            onLongPress={holdFor('running')}
+          />
+        );
+      case 'weight':
+        return (
+          <Tile
+            width={half}
+            label="Weight"
+            title={board.weightKg !== undefined ? formatWeight(board.weightKg, settings.units) : '—'}
+            sub={weightSub}
+            subColor={board.weightLoggedToday ? colors.accentOnDark : colors.mutedDark}
+            plus
+            onPress={() => setSheet('weight')}
+            onLongPress={holdFor('weight')}
+          />
+        );
+      case 'swimming':
+        return (
+          <Tile
+            width={half}
+            label="Swim"
+            title={board.swimM !== undefined ? `${board.swimM.toLocaleString('en-US')} m` : '—'}
+            sub={
+              board.swimM !== undefined
+                ? 'logged today'
+                : fresh
+                  ? 'nothing yet'
+                  : lastSwim?.data.kind === 'swim'
+                    ? `last: ${shortWeekday(lastSwim.day)} · ${lastSwim.data.m} m`
+                    : 'nothing yet'
+            }
+            plus
+            onPress={() => setSheet('swim')}
+            onLongPress={holdFor('swimming')}
+          />
+        );
+      case 'classes':
+        return (
+          <Tile
+            width={half}
+            label="Class"
+            title={board.classDone ? 'Attended ✓' : demo ? 'Yoga 18:30' : '—'}
+            sub={
+              board.classDone
+                ? 'logged today'
+                : demo
+                  ? 'booked · tap + when done'
+                  : 'tap + when you attend one'
+            }
+            plus={!board.classDone}
+            onLongPress={holdFor('classes')}
+            onPress={board.classDone ? undefined : () => setSheet('class')}
+          />
+        );
+      case 'sleep':
+        return (
+          <Pressable98
+            onPress={() => setSheet('sleep')}
+            onLongPress={holdFor('sleep')}
+            scaleTo={0.98}
+            style={{
+              width: full,
+              backgroundColor: colors.tile,
+              borderRadius: 20,
+              padding: 16,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <View>
+              <Txt size={11} w={700} ls={0.06} upper color={colors.mutedDark}>
+                {loggedSleep ? 'Sleep · logged' : 'Sleep · tap to log'}
+              </Txt>
+              <Txt size={22} w={900} lineHeight={1.1} style={{ marginTop: 2 }}>
+                {sleep ? `${sleep.h}h ${sleep.m}m` : '—'}
+              </Txt>
+            </View>
+            <Txt size={11.5} w={600} color={colors.mutedDark}>
+              {sleep ? 'last night' : 'tap to log'}
+            </Txt>
+          </Pressable98>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.appBg }}>
       <ScrollView
@@ -232,225 +447,11 @@ export default function Board() {
         </View>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-          {settings.picked.steps ? (
-            <Pressable98
-              onPress={() => setSheet('steps')}
-              onLongPress={holdFor('steps')}
-              scaleTo={0.98}
-              style={{
-                width: full,
-                backgroundColor: colors.tile,
-                borderRadius: 20,
-                padding: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <View>
-                <Txt size={11} w={700} ls={0.06} upper color={colors.mutedDark}>
-                  {loggedSteps !== undefined
-                    ? 'Steps · logged'
-                    : settings.healthConnected
-                      ? 'Steps · auto'
-                      : 'Steps · tap to log'}
-                </Txt>
-                <Txt size={38} w={900} ls={-0.03} lineHeight={1.1}>
-                  {steps == null ? '—' : steps.toLocaleString('en-US')}
-                </Txt>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Txt size={12} w={700} color={colors.accentOnDark}>
-                  {steps == null
-                    ? `goal ${settings.stepsGoalDay.toLocaleString('en-US')}`
-                    : `${stepsPct}% of ${settings.stepsGoalDay.toLocaleString('en-US')}`}
-                </Txt>
-                {progressBar(stepsPct, 120, 7)}
-              </View>
-            </Pressable98>
-          ) : null}
-
-          {settings.picked.workouts ? (
-            board.workout ? (
-              <Tile
-                width={half}
-                label="Workout"
-                title="Logged ✓"
-                sub={
-                  board.workout.mins > 0
-                    ? `${board.workout.name} · ${board.workout.mins} min`
-                    : board.workout.name
-                }
-                green
-                onLongPress={holdFor('workouts')}
-                footer={
-                  <Txt size={11} w={800} ls={0.04} color={colors.ink} style={{ marginTop: 12 }}>
-                    STREAK {streakN}
-                  </Txt>
-                }
-              />
-            ) : (
-              <Tile
-                width={half}
-                label="Workout"
-                title="—"
-                sub={
-                  fresh
-                    ? 'nothing yet'
-                    : lastWorkout?.data.kind === 'workout'
-                      ? `last: ${shortWeekday(lastWorkout.day)} · ${lastWorkout.data.name}`
-                      : 'nothing yet'
-                }
-                plus
-                plusTinted
-                border
-                onPress={() =>
-                  sessionActive ? router.push('/session') : setSheet('workout')
-                }
-                onLongPress={holdFor('workouts')}
-                footer={
-                  <Txt
-                    size={11}
-                    w={800}
-                    ls={0.04}
-                    color={colors.accentOnDark}
-                    style={{ marginTop: 12 }}
-                  >
-                    {sessionActive ? 'SESSION LIVE · TAP TO RESUME' : 'TAP TO START'}
-                  </Txt>
-                }
-              />
-            )
-          ) : null}
-
-          {settings.picked.meals ? (
-            <Tile
-              width={half}
-              label="Meals"
-              title={board.mealsKcal > 0 ? board.mealsKcal.toLocaleString('en-US') : '—'}
-              sub={
-                board.mealsKcal > 0
-                  ? `of ${settings.kcalGoal.toLocaleString('en-US')} kcal`
-                  : 'tap + to log a meal'
-              }
-              plus
-              onPress={() => setSheet('meal')}
-              onLongPress={holdFor('meals')}
-              footer={progressBar(
-                Math.round((board.mealsKcal / settings.kcalGoal) * 100),
-                half - 32,
-                6,
-              )}
-            />
-          ) : null}
-
-          {settings.picked.running ? (
-            <Tile
-              width={half}
-              label="Run"
-              title={
-                board.runKm !== undefined ? formatDistance(board.runKm, settings.units) : '—'
-              }
-              sub={
-                board.runKm !== undefined
-                  ? 'logged today'
-                  : fresh
-                    ? 'nothing yet'
-                    : lastRun?.data.kind === 'run'
-                      ? `last: ${shortWeekday(lastRun.day)} · ${formatDistance(lastRun.data.km, settings.units)}`
-                      : 'nothing yet'
-              }
-              plus
-              onPress={() => setSheet('run')}
-              onLongPress={holdFor('running')}
-            />
-          ) : null}
-
-          {settings.picked.weight ? (
-            <Tile
-              width={half}
-              label="Weight"
-              title={
-                board.weightKg !== undefined ? formatWeight(board.weightKg, settings.units) : '—'
-              }
-              sub={weightSub}
-              subColor={board.weightLoggedToday ? colors.accentOnDark : colors.mutedDark}
-              plus
-              onPress={() => setSheet('weight')}
-              onLongPress={holdFor('weight')}
-            />
-          ) : null}
-
-          {settings.picked.swimming ? (
-            <Tile
-              width={half}
-              label="Swim"
-              title={board.swimM !== undefined ? `${board.swimM.toLocaleString('en-US')} m` : '—'}
-              sub={
-                board.swimM !== undefined
-                  ? 'logged today'
-                  : fresh
-                    ? 'nothing yet'
-                    : lastSwim?.data.kind === 'swim'
-                      ? `last: ${shortWeekday(lastSwim.day)} · ${lastSwim.data.m} m`
-                      : 'nothing yet'
-              }
-              plus
-              onPress={() => setSheet('swim')}
-              onLongPress={holdFor('swimming')}
-            />
-          ) : null}
-
-          {settings.picked.classes ? (
-            <Tile
-              width={half}
-              label="Class"
-              title={board.classDone ? 'Attended ✓' : demo ? 'Yoga 18:30' : '—'}
-              sub={
-                board.classDone
-                  ? 'logged today'
-                  : demo
-                    ? 'booked · tap + when done'
-                    : 'tap + when you attend one'
-              }
-              plus={!board.classDone}
-              onLongPress={holdFor('classes')}
-              onPress={board.classDone ? undefined : () => setSheet('class')}
-            />
-          ) : null}
-
-          {settings.picked.sleep ? (
-            <Pressable98
-              onPress={sleepInfo}
-              scaleTo={0.98}
-              style={{
-                width: full,
-                backgroundColor: colors.tile,
-                borderRadius: 20,
-                padding: 16,
-                opacity: 0.85,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <View>
-                <Txt size={11} w={700} ls={0.06} upper color={colors.mutedDark}>
-                  Sleep · auto
-                </Txt>
-                <Txt size={22} w={900} lineHeight={1.1} style={{ marginTop: 2 }}>
-                  {sleep ? `${sleep.h}h ${sleep.m}m` : '—'}
-                </Txt>
-              </View>
-              <Txt size={11.5} w={600} color={colors.mutedDark}>
-                {settings.healthConnected
-                  ? sleep
-                    ? 'from watch'
-                    : 'no sleep data yet'
-                  : `connect ${healthAppName} to auto-fill`}
-              </Txt>
-            </Pressable98>
-          ) : null}
+          {order
+            .filter((id) => settings.picked[id])
+            .map((id) => (
+              <Fragment key={id}>{renderTile(id)}</Fragment>
+            ))}
         </View>
 
         <Txt size={11} w={600} color={colors.mutedLight} center style={{ paddingBottom: 16 }}>
@@ -469,6 +470,9 @@ export default function Board() {
         {sheet === 'swim' ? <SwimSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'steps' ? (
           <StepsSheet initial={loggedSteps} onClose={() => setSheet(null)} />
+        ) : null}
+        {sheet === 'sleep' ? (
+          <SleepSheet initial={loggedSleep} onClose={() => setSheet(null)} />
         ) : null}
         {sheet === 'class' ? <ClassSheet onClose={() => setSheet(null)} /> : null}
         {sheet === 'weight' ? (
