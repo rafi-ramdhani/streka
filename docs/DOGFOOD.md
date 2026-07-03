@@ -29,7 +29,15 @@ Where an item was flagged "owner input", I took the sensible default and built i
 (interim settings gear, kcal + step goal editors, run-primer honesty line); override any
 of these and I will adjust. Done, per item: 1 settings gear · 2 honest scan gate ·
 3 nudge channel + Expo Go gating · 4 sync-pill copy · 5 steps/sleep info taps ·
-6 run-primer line · 7 goal editors · 8 JSON backup + restore.
+6 run-primer line · 7 goal editors · 8 (later removed, see below).
+
+> **Update (post-dogfood):** the app moved past this plan during owner testing.
+> Health Connect was dropped, so steps and sleep are now manual trackers (they count
+> toward the streak like any other log); custom workouts, custom run/swim/steps inputs,
+> class types, and drag-and-drop tile reorder were added; and the JSON backup/restore of
+> item 8 (plus the CSV export) was **removed** on the reasoning that a habit tracker is
+> not a ledger, durable data belongs to account sync when it lands. See `docs/TAD.md`
+> rounds 15-17 for the current record.
 
 ---
 
@@ -37,8 +45,8 @@ of these and I will adjust. Done, per item: 1 settings gear · 2 honest scan gat
 
 Entries live in SQLite inside the running app's sandbox, so the standalone app and Expo
 Go are separate stores. The standalone app installs as `com.streka.app` and starts with
-an empty database, which is the clean-runtime choice; the backup/restore in item 8 is
-how to carry data in later if wanted.
+an empty database, which is the clean-runtime choice; carrying data across installs is
+account sync's job once it lands (there is no local backup, see item 8).
 
 The build was done **entirely locally**, no EAS/cloud and no Expo account:
 
@@ -139,13 +147,12 @@ Either accept the defaults for the dogfood or add two stepper rows to Settings
 (the nudge-time sheet is the pattern to reuse). Effort: small. **Owner input: are the
 defaults right for you? If yes, defer the editors.**
 
-**8. Backup that can come back.** Export exists (CSV via the share sheet) but there is
-no import. Two weeks of streak data will live in one SQLite file in one app sandbox.
-Recommended: add JSON export + import in Settings (full `log_entries` rows, id and
-timestamps included, so restore preserves history exactly and survives a runtime
-switch or reinstall). CSV stays for spreadsheets. Effort: medium-small. Fallback if
-skipped: share the CSV somewhere safe once or twice a week, accepting that restore
-would be manual re-entry.
+**8. Backup / data export.** Originally a JSON backup + restore (and a CSV export) were
+built here so two weeks of data in one SQLite sandbox could survive a reinstall.
+**Both were later removed.** The owner's call: a habit tracker is not a financial ledger,
+and durable/cross-device data is account sync's job when it lands, not a local file. So
+there is intentionally no backup, restore, or export in the app. The dependencies they
+needed (expo-sharing, expo-document-picker, expo-file-system) were dropped too.
 
 **9. Real-device pass on the chosen runtime.** One evening of walking every flow on
 the actual phone (fresh onboarding, each tile's sheet, a real GPS run outdoors, a
@@ -162,8 +169,9 @@ out.
   against a full one (TAD gap 8). If it grates during the dogfood, the fix (compare
   completed weeks) is small. **Owner input: leave or fix?**
 - Trends and Goals look sparse for the first week. Real data, honest charts.
-- Steps never count toward the streak (product rule: health-sourced entries are not
-  intentional logs). Expected, not a bug.
+- Manual steps and sleep now count toward the streak like any hand log (they are
+  `source: 'manual'`). Only auto/health-sourced entries were ever excluded, and there is
+  no auto source anymore. Expected, not a bug.
 - The watch heart-rate slot on the run screen stays a dash, the class tile shows no
   booking, weight shows a dash before the first entry. All honest-data rules.
 - Scan's "AI ESTIMATE ±20%" badge and portion logic remain dormant behind the item 2
@@ -185,12 +193,13 @@ map styling, web and landing apps (untouched by the dogfood).
 Fresh onboarding with tracker picking and rhythm; the Board with per-tracker tiles,
 logging sheets, coach mark, streak chip and sync pill; live multi-exercise workout
 sessions with per-exercise top sets feeding Trends bests; GPS runs with live route,
-auto-pause, hold-to-end, route map, run detail; meal, weight, swim, and class logging;
-edit and delete for every entry via long-press day logs (tile-framed summaries);
+auto-pause, hold-to-end, route map, run detail; meal, weight, swim, class, manual step,
+and manual sleep logging; custom workouts and custom run/swim inputs; edit and delete for
+every entry via long-press day logs (tile-framed summaries); drag-and-drop tile reorder;
 Trends and Goals derived from real history; midnight rollover without reload; units
-display conversion; weekly rhythm and board editing from Settings; CSV export; SQLite
-persistence with the sync-ready schema; safe-area layout, Android board-first back,
-brand icon and splash.
+display conversion; weekly rhythm and board editing from Settings; SQLite persistence
+with the sync-ready schema; safe-area layout, Android board-first back, brand icon,
+splash, and notification icon.
 
 ---
 
@@ -206,8 +215,8 @@ brand icon and splash.
 | 5 | Steps/Sleep info taps | done |
 | 6 | Run primer interim line | done |
 | 7 | Goal editors (kcal, steps) | done |
-| 8 | JSON backup + restore | done |
-| 9 | Android device pass | yours, walk the flows on the phone |
+| 8 | JSON backup + restore | built, then removed (see item 8 above) |
+| 9 | Android device pass | done (ongoing owner testing) |
 
 ## Day-1 checklist
 
@@ -220,4 +229,6 @@ The standalone app (`com.streka.app`) is already installed on the phone. To star
    and allow the notification permission when asked.
 4. Check units, rhythm days, and the kcal goal in Settings.
 5. Log the first real entry. Streak day 1 starts the clock.
-6. Back up once at the end of week 1 (Settings, "Back up my data").
+
+There is no local backup by design; your data stays on this phone until account sync
+lands. Keep the app installed (a reinstall starts fresh).
