@@ -13,14 +13,17 @@ left, ordered by how hard it blocks the dogfood.
 
 ---
 
-## Status (2026-07-03): code items done
+## Status (2026-07-03): done, installed on the phone
 
-Every code item below is implemented, typechecked, and (where visible) verified on the
-iOS simulator. What is left is yours, because it needs your hands, not mine:
+Every code item below is implemented and typechecked; the visible ones were verified on
+the iOS simulator. The app was then built locally (no cloud) and installed to the
+connected Android phone (`com.streka.app`, Android 16), and it launches standalone: the
+logs show `ReactNativeJS: Running "main"` with the JS bundle embedded and no dev-server
+connection, so it runs without Metro. See section 0 for how the build was done and how
+to rebuild.
 
-- **Run the build (item 0).** `eas.json` and the Android/iOS package ids are in place;
-  the actual `eas build` needs your Expo login. Steps in section 0.
-- **The Android device pass (item 9).** Walk the flows on the real phone.
+One thing is still yours because it needs your hands: **the on-device pass (item 9)**,
+walking every flow on the phone.
 
 Where an item was flagged "owner input", I took the sensible default and built it
 (interim settings gear, kcal + step goal editors, run-primer honesty line); override any
@@ -30,31 +33,44 @@ of these and I will adjust. Done, per item: 1 settings gear · 2 honest scan gat
 
 ---
 
-## 0. Decide the runtime before day 1
+## 0. Runtime: local standalone build (done)
 
-This is a data decision, not just a convenience one. Entries live in SQLite inside the
-running app's sandbox. Expo Go and an installed APK are different sandboxes, so
-switching mid-dogfood starts the streak from zero (there is no import yet, see item 8).
-Pick once, before the first real log.
+Entries live in SQLite inside the running app's sandbox, so the standalone app and Expo
+Go are separate stores. The standalone app installs as `com.streka.app` and starts with
+an empty database, which is the clean-runtime choice; the backup/restore in item 8 is
+how to carry data in later if wanted.
 
-**Option A (recommended): EAS preview APK.** One cloud build, install the APK once.
+The build was done **entirely locally**, no EAS/cloud and no Expo account:
 
-- Launches without the laptop and without Metro. This is what "daily use" needs.
-- Local scheduled notifications work on Android, so the nudge actually fires.
-- Real home-screen icon, splash, standalone app.
-- Cost: a free Expo account, an `eas.json` preview profile
-  (`{"build": {"preview": {"distribution": "internal", "android": {"buildType": "apk"}}}}`),
-  and `npx eas-cli build --platform android --profile preview` (~15 min in the queue).
-- Shipping a fix during the dogfood means rebuilding, or adding `expo-updates` for
-  over-the-air JS updates (optional, can be added in a later build).
+```sh
+cd apps/mobile
+npx expo prebuild --platform android        # generates the gitignored android/ project
+cd android
+printf 'sdk.dir=%s\n' "$HOME/Library/Android/sdk" > local.properties
+./gradlew :app:assembleRelease -x lint      # ~12 min first time; APK embeds the JS bundle
+```
 
-**Option B: stay on Expo Go.** Zero build work, but the phone needs Metro running on
-the laptop, on the same Wi-Fi, more or less every time the app opens. Nudges never
-fire on Android in Expo Go (SDK 53+ removed the module there), and clearing Expo Go's
-storage deletes the database. Workable for a weekend, painful for two weeks.
+The release variant self-signs with the debug keystore (Expo's template default), so no
+keystore setup is needed for personal sideloading. Result:
+`apps/mobile/android/app/build/outputs/apk/release/app-release.apk` (~134 MB universal
+APK, all ABIs, unminified, fine for a personal build).
 
-The task list below assumes Option A. Items marked *(Expo Go only)* apply only if
-Option B is chosen.
+Install and launch on the connected phone:
+
+```sh
+adb install -r apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+adb shell monkey -p com.streka.app -c android.intent.category.LAUNCHER 1
+```
+
+To rebuild after a JS or native change: re-run `./gradlew :app:assembleRelease` and
+`adb install -r ...`. The `android/` directory is gitignored (continuous native
+generation), so it is a throwaway artifact; `expo prebuild` regenerates it from
+`app.json` any time. For fast JS-only iteration during development, `pnpm --filter
+mobile start` still serves Expo Go as before.
+
+Toolchain used (all already on this machine): JDK 17 (Zulu), Android SDK platform 36 +
+build-tools 36, NDK 27. Local notifications fire on this standalone build (unlike Expo
+Go on Android).
 
 ---
 
@@ -75,16 +91,15 @@ needs the AI service, which is not wired up in this build yet", with a TYPE IT I
 button that opens the manual meal sheet. The mock stays reachable through the dev
 deep link (`scan?dev=result|unsure`) for screenshot verification. Effort: small.
 
-**3. Nudge: make it real, or make its absence visible.**
-- Option A path: add the Android notification channel
-  (`setNotificationChannelAsync`, currently missing, Android 8+ wants one), build,
-  and verify on the device that the scheduled nudge fires at the chosen time on a
-  no-log day and stays quiet on a logged day. Effort: small plus one real-device test.
-- *(Expo Go only)*: today the only signal that nudges do nothing on Android is a
-  console warning the user never sees. The Settings nudge row and the Goals toggle
-  look functional. Expose availability from `src/nudges.ts` and render the toggle
-  disabled with info text ("Reminders need the installed build on Android").
-  Effort: small.
+**3. Nudge: make it real, or make its absence visible.** Both done.
+- The Android notification channel is now created before scheduling
+  (`setNotificationChannelAsync`, Android 8+ drops channel-less notifications) and the
+  schedule passes `channelId`. On the standalone build the nudge can fire. Confirming
+  it actually fires at the chosen time on a no-log day (and stays quiet once logged) is
+  part of the on-device pass, item 9.
+- For the Expo Go fallback, `src/nudges.ts` exposes `nudgesSupported`, and the Settings
+  and Goals toggles render disabled with info text where nudges cannot fire (Expo Go on
+  Android), instead of looking functional.
 
 **4. Sync pill toast copy.** Tapping the pill without an account says "add an account
 later in Settings", but no account can be added anywhere (sign-in is honestly gated).
@@ -179,30 +194,30 @@ brand icon and splash.
 
 ---
 
-## 7. Suggested order
+## 7. Status of the list
 
-| # | Item | Size | Needs owner call first? |
-|---|------|------|------------------------|
-| 0 | Runtime decision + preview APK build | S | yes (A or B) |
-| 2 | Gate food scan | S | no |
-| 4 | Sync pill copy | XS | no |
-| 3 | Nudge channel + device test (or Expo Go gating) | S | follows #0 |
-| 1 | Settings entry point | S | placement |
-| 5 | Steps/Sleep info taps | S | no |
-| 6 | Run primer interim line | XS | yes |
-| 7 | Goal editors | S | defaults OK? |
-| 8 | JSON export + import | M | no |
-| 9 | Android device pass | session | follows all |
+| # | Item | State |
+|---|------|-------|
+| 0 | Runtime: local standalone build | done, installed on the phone |
+| 1 | Settings entry point (interim gear) | done |
+| 2 | Gate food scan | done |
+| 3 | Nudge channel + Expo Go gating | done (firing verified in item 9) |
+| 4 | Sync pill copy | done |
+| 5 | Steps/Sleep info taps | done |
+| 6 | Run primer interim line | done |
+| 7 | Goal editors (kcal, steps) | done |
+| 8 | JSON backup + restore | done |
+| 9 | Android device pass | yours, walk the flows on the phone |
 
-Everything except #8 and #9 is an hour-or-less item; the whole list is roughly one
-working day plus the device pass.
+## Day-1 checklist
 
-## Day-1 checklist (once the list above is done)
+The standalone app (`com.streka.app`) is already installed on the phone. To start:
 
-1. Install the preview APK (or start Metro if Option B).
+1. Open Streka from the app drawer (not Expo Go, that is a separate copy).
 2. Onboard fresh. Pick only trackers you will really log; on Android untick Steps and
    Sleep unless you want the gated tiles visible.
-3. Set the nudge time to when a reminder would actually help.
-4. Check units, rhythm days, and (if built) kcal goal in Settings.
+3. Set the nudge time (Settings gear, top-right) to when a reminder would actually help,
+   and allow the notification permission when asked.
+4. Check units, rhythm days, and the kcal goal in Settings.
 5. Log the first real entry. Streak day 1 starts the clock.
-6. Export once at the end of week 1.
+6. Back up once at the end of week 1 (Settings, "Back up my data").
