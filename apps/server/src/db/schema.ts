@@ -21,6 +21,22 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Opaque server-side sessions. Server-only: this table is NOT mirrored to the
+// mobile SQLite schema. Only the SHA-256 hash of the token is stored.
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [index('idx_sessions_user').on(t.userId)],
+);
+
 // Mirrors packages/core/src/schema.ts log_entries. Deltas from the SQLite table:
 // per-user (user_id), jsonb payload, boolean deleted, and no local-only synced_at.
 export const logEntries = pgTable(
