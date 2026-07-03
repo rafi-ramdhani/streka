@@ -1,12 +1,8 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as DocumentPicker from 'expo-document-picker';
-import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
-import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { Alert, ScrollView, Share, View } from 'react-native';
+import { ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { BackupError, dayOf, parseBackup, serializeBackup } from '@streka/core';
 import { showToast, useLogs, useSettings, useSync } from '../../src/core';
 import { nudgesSupported } from '../../src/nudges';
 import { goBack } from '../../src/lib/nav';
@@ -100,7 +96,6 @@ export default function Settings() {
   const settings = useSettings();
   const online = useSync((s) => s.online);
   const entries = useLogs((s) => s.entries);
-  const replaceAll = useLogs((s) => s.replaceAll);
   const pad = useScreenPad();
   const [timeSheet, setTimeSheet] = useState(false);
   const [draftTime, setDraftTime] = useState(() => {
@@ -153,59 +148,6 @@ export default function Settings() {
         return `${e.id},${new Date(e.ts).toISOString()},${e.day},${e.tracker},${e.source},${d.kind},${value}`;
       });
     void Share.share({ message: [header, ...rows].join('\n') });
-  };
-
-  // JSON backup that can actually be restored: a real file, shared through the
-  // OS sheet, holding every row with its id and timestamps intact.
-  const backupJson = async () => {
-    try {
-      const json = serializeBackup(entries, Date.now());
-      const file = new File(Paths.cache, `streka-backup-${dayOf(Date.now())}.json`);
-      if (file.exists) file.delete();
-      file.create();
-      file.write(json);
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(file.uri, {
-          mimeType: 'application/json',
-          dialogTitle: 'Streka backup',
-          UTI: 'public.json',
-        });
-      } else {
-        await Share.share({ message: json });
-      }
-    } catch {
-      showToast('Backup failed', 'Could not create the backup file.');
-    }
-  };
-
-  // Restore replaces everything on the phone, so it confirms first and rejects
-  // any file that is not a clean Streka backup before touching the store.
-  const restoreJson = async () => {
-    try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: 'application/json',
-        copyToCacheDirectory: true,
-      });
-      if (res.canceled || !res.assets[0]) return;
-      const restored = parseBackup(await new File(res.assets[0].uri).text());
-      Alert.alert(
-        'Restore this backup?',
-        `It holds ${restored.length} entries. This replaces everything currently on this phone.`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Restore',
-            style: 'destructive',
-            onPress: () => {
-              replaceAll(restored);
-              showToast('Backup restored', `${restored.length} entries are back on this phone.`);
-            },
-          },
-        ],
-      );
-    } catch (err) {
-      showToast('Restore failed', err instanceof BackupError ? err.message : 'Could not read that file.');
-    }
   };
 
   return (
@@ -359,20 +301,8 @@ export default function Settings() {
 
       <Group>
         <Row
-          title="Back up my data"
-          sub="A JSON file you can restore later"
-          right={<Chevron />}
-          onPress={() => void backupJson()}
-        />
-        <Row
-          title="Restore from a backup"
-          sub="Replaces everything on this phone"
-          right={<Chevron />}
-          onPress={() => void restoreJson()}
-        />
-        <Row
-          title="Export as CSV"
-          sub="For a spreadsheet, it's yours"
+          title="Export my data"
+          sub="Everything as CSV — it's yours"
           right={<Chevron />}
           onPress={exportCsv}
           last={!settings.hasAccount}

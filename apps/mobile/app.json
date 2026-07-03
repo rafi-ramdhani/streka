@@ -50,7 +50,6 @@
           "photosPermission": "Streka reads a photo you pick to estimate calories."
         }
       ],
-      "expo-sharing",
       [
         "expo-notifications",
         {
