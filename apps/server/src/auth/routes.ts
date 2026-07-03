@@ -44,10 +44,11 @@ export function createAuthRoutes(db: PgDatabase<any, any>) {
     if (existing.length > 0) return c.json({ error: 'email already registered' }, 409);
 
     const passwordHash = await hashPassword(parsed.data.password);
-    const [user] = await db.insert(users).values({ email, passwordHash }).returning();
-    const { token } = await createSession(db, user!.id);
+    const [user] = await db.insert(users).values({ email, passwordHash }).onConflictDoNothing().returning();
+    if (!user) return c.json({ error: 'email already registered' }, 409);
+    const { token } = await createSession(db, user.id);
     setSessionCookie(c, token);
-    return c.json({ user: publicUser(user!) }, 201);
+    return c.json({ user: publicUser(user) }, 201);
   });
 
   app.post('/signin', async (c) => {

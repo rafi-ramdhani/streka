@@ -1,4 +1,4 @@
-import { argon2id } from '@noble/hashes/argon2.js';
+import { argon2idAsync } from '@noble/hashes/argon2.js';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 
 // OWASP argon2id baseline. m is memory in KiB (19456 KiB = 19 MiB).
@@ -14,14 +14,14 @@ const unb64 = (s: string): Buffer => Buffer.from(s, 'base64');
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(SALT_LEN);
-  const hash = argon2id(enc.encode(password), salt, { m: M, t: T, p: P, dkLen: DK_LEN });
+  const hash = await argon2idAsync(enc.encode(password), salt, { m: M, t: T, p: P, dkLen: DK_LEN });
   return `$argon2id$v=19$m=${M},t=${T},p=${P}$${b64(salt)}$${b64(hash)}`;
 }
 
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   try {
-    const [, algo, , paramStr, saltB64, hashB64] = stored.split('$');
-    if (algo !== 'argon2id' || !paramStr || !saltB64 || !hashB64) return false;
+    const [, algo, version, paramStr, saltB64, hashB64] = stored.split('$');
+    if (algo !== 'argon2id' || version !== 'v=19' || !paramStr || !saltB64 || !hashB64) return false;
     const params = Object.fromEntries(
       paramStr.split(',').map((kv) => kv.split('=')),
     ) as Record<string, string | undefined>;
@@ -32,7 +32,7 @@ export async function verifyPassword(password: string, stored: string): Promise<
     const salt = unb64(saltB64);
     const expected = unb64(hashB64);
     const actual = Buffer.from(
-      argon2id(enc.encode(password), salt, { m, t, p, dkLen: expected.length }),
+      await argon2idAsync(enc.encode(password), salt, { m, t, p, dkLen: expected.length }),
     );
     if (actual.length !== expected.length) return false;
     return timingSafeEqual(actual, expected);

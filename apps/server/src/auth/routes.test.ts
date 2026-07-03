@@ -81,3 +81,8 @@ test('signout revokes the session so the cookie stops working', async () => {
   const me = await app.request('/auth/me', { headers: { Cookie: cookie } });
   expect(me.status).toBe(401);
 });
+
+test('signout without a session is idempotent (204)', async () => {
+  const res = await app.request('/auth/signout', { method: 'POST' });
+  expect(res.status).toBe(204);
+});
