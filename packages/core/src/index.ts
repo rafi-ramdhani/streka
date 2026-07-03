@@ -12,3 +12,4 @@ export * from './units';
 export * from './workouts';
 export * from './services';
 export * from './seed';
+export * from './backup';

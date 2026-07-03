@@ -10,6 +10,7 @@ import {
 } from '@streka/core';
 import { useLogs, useSettings } from '../../src/core';
 import { useHealthToday } from '../../src/health';
+import { nudgesSupported } from '../../src/nudges';
 import { useScreenPad } from '../../src/lib/screenPad';
 import { useToday } from '../../src/lib/useToday';
 import { ProgressSegments } from '../../src/components/ProgressSegments';
@@ -149,11 +150,14 @@ export default function Goals() {
         <View
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
         >
-          <Txt size={11.5} w={600} color={colors.mutedDark}>
-            Nudge: on days you haven't logged, {settings.nudge.time}
+          <Txt size={11.5} w={600} color={colors.mutedDark} style={{ flex: 1, paddingRight: 12 }}>
+            {nudgesSupported
+              ? `Nudge: on days you haven't logged, ${settings.nudge.time}`
+              : 'Nudge needs the installed app (not Expo Go on Android)'}
           </Txt>
           <Toggle
-            on={settings.nudge.enabled}
+            on={settings.nudge.enabled && nudgesSupported}
+            disabled={!nudgesSupported}
             onToggle={() =>
               settings.set({ nudge: { ...settings.nudge, enabled: !settings.nudge.enabled } })
             }
@@ -166,7 +170,7 @@ export default function Goals() {
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Txt size={16} w={900}>
-            70,000 steps a week
+            {settings.stepsGoalWeek.toLocaleString('en-US')} steps a week
           </Txt>
           <Txt size={13} w={900} color={colors.accentOnDark}>
             {stepsPct}%

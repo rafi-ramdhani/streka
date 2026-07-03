@@ -11,6 +11,14 @@ import { core } from './core';
 
 type NotificationsModule = typeof import('expo-notifications');
 
+// Whether local notifications can fire at all in this runtime. Expo Go on
+// Android dropped expo-notifications in SDK 53, so nudges there are a no-op no
+// matter the setting; the UI uses this to show the toggle as unavailable
+// instead of pretending it works. The installed build supports them.
+export const nudgesSupported = !(
+  Platform.OS === 'android' && Constants.executionEnvironment === 'storeClient'
+);
+
 // Expo Go on Android ships without expo-notifications since SDK 53; even
 // importing the module there can take down the app. Load it lazily and
 // degrade to a no-op until a development build exists.
@@ -49,6 +57,15 @@ export async function syncNudgeSchedule(): Promise<void> {
     const Notifications = await loadNotifications();
     if (!Notifications) return;
 
+    // Android 8+ drops any notification without a channel. Create it once
+    // (the call is idempotent) so the scheduled nudge actually surfaces.
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('nudges', {
+        name: 'Streak nudges',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+    }
+
     const settings = core.useSettings.getState();
     await Notifications.cancelAllScheduledNotificationsAsync();
     if (!settings.onboarded || !settings.nudge.enabled) return;
@@ -77,10 +94,14 @@ export async function syncNudgeSchedule(): Promise<void> {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Keep the streak.',
-        body: `No log yet today — day ${dayN} is one tap away.`,
+        body: `No log yet today. Day ${dayN} is one tap away.`,
         sound: false,
       },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: next },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: next,
+        channelId: 'nudges',
+      },
     });
   } catch (err) {
     // Never let scheduling break the app.

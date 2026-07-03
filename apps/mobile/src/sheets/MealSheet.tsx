@@ -12,20 +12,26 @@ const OPTIONS = [
   { label: 'Big meal', kcal: 800 },
 ];
 
-// Proto:654-668 with the scan gate from logic 296-305: food scan needs a
-// registered account AND a connection; quick estimates always work.
+// Proto:654-668. The photo scan needs an AI service that is not in this build
+// (TAD 5.2), so it is honestly unavailable to real users; the mock stays
+// reachable on the demo dataset for verification. Quick estimates always work.
 export function MealSheet({ onClose }: { onClose: () => void }) {
   const hasAccount = useSettings((s) => s.hasAccount);
   const online = useSync((s) => s.online);
+  // Only the demo dataset carries an account, and it is where the mock scan is
+  // demonstrated; every real user logs meals by hand until the service lands.
   const scanEnabled = hasAccount && online;
 
   const onScanTap = () => {
     if (!hasAccount) {
-      showToast('Scanning needs an account', 'Create one in Settings — quick estimates below work now');
+      showToast(
+        'Photo scan isn’t in this build',
+        'Reading a plate from a photo needs a service that arrives later. The quick estimates below log now.',
+      );
       return;
     }
     if (!online) {
-      showToast('Scanning needs a connection', 'You’re offline — quick estimates below still work');
+      showToast('Scanning needs a connection', 'You’re offline. The quick estimates below still work.');
       return;
     }
     onClose();
@@ -56,7 +62,7 @@ export function MealSheet({ onClose }: { onClose: () => void }) {
             color={scanEnabled ? colors.ink : colors.mutedDark}
             style={{ opacity: 0.75 }}
           >
-            {scanEnabled ? 'AI · camera' : !hasAccount ? 'needs an account' : 'needs a connection'}
+            {scanEnabled ? 'AI · camera' : !hasAccount ? 'not in this build' : 'needs a connection'}
           </Txt>
         </Pressable98>
         {OPTIONS.map((o) => (

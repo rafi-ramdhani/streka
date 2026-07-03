@@ -18,8 +18,8 @@ export function SyncPill() {
   const onTap = () => {
     if (!hasAccount) {
       showToast(
-        'No account yet',
-        'Your data stays on this phone — add an account later in Settings',
+        'On this phone',
+        'Everything saves here. Accounts and cross-device sync arrive in a later build.',
       );
       return;
     }

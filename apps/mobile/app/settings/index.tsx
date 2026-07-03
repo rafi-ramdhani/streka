@@ -1,10 +1,15 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as DocumentPicker from 'expo-document-picker';
+import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { ScrollView, Share, View } from 'react-native';
+import { Alert, ScrollView, Share, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useLogs, useSettings, useSync } from '../../src/core';
+import { BackupError, dayOf, parseBackup, serializeBackup } from '@streka/core';
+import { showToast, useLogs, useSettings, useSync } from '../../src/core';
 import { healthAppName, requestHealthPermissions } from '../../src/health';
+import { nudgesSupported } from '../../src/nudges';
 import { useScreenPad } from '../../src/lib/screenPad';
 import { BigButton } from '../../src/components/BigButton';
 import { LogSheet } from '../../src/components/LogSheet';
@@ -80,6 +85,14 @@ function Group({ children }: { children: React.ReactNode }) {
   );
 }
 
+// The two daily targets the design shipped as fixed defaults. They have no
+// designed editor, but "% of goal" is meaningless if the goal never fits the
+// person, so Settings gets a stepper for each (interim, flagged in the TAD).
+const GOALS: Record<'kcal' | 'steps', { title: string; unit: string; step: number; min: number }> = {
+  kcal: { title: 'Daily calorie goal', unit: 'kcal', step: 50, min: 800 },
+  steps: { title: 'Daily step goal', unit: 'steps', step: 500, min: 2000 },
+};
+
 // Settings (canvas 10b): everything set in onboarding, editable in one screen.
 // Reachable via the /settings route only; a visible entry point is an open
 // item for the owner (TAD, Gaps 1).
@@ -87,6 +100,7 @@ export default function Settings() {
   const settings = useSettings();
   const online = useSync((s) => s.online);
   const entries = useLogs((s) => s.entries);
+  const replaceAll = useLogs((s) => s.replaceAll);
   const pad = useScreenPad();
   const [timeSheet, setTimeSheet] = useState(false);
   const [draftTime, setDraftTime] = useState(() => {
@@ -95,6 +109,14 @@ export default function Settings() {
     d.setHours(h, m, 0, 0);
     return d;
   });
+
+  const [goalKind, setGoalKind] = useState<'kcal' | 'steps' | null>(null);
+  const [goalDraft, setGoalDraft] = useState(0);
+  const openGoal = (kind: 'kcal' | 'steps') => {
+    setGoalDraft(kind === 'kcal' ? settings.kcalGoal : settings.stepsGoalDay);
+    setGoalKind(kind);
+  };
+  const goalSpec = goalKind ? GOALS[goalKind] : null;
 
   const trackerCount = Object.values(settings.picked).filter(Boolean).length;
   const rightLabel = (label: string) => (
@@ -131,6 +153,59 @@ export default function Settings() {
         return `${e.id},${new Date(e.ts).toISOString()},${e.day},${e.tracker},${e.source},${d.kind},${value}`;
       });
     void Share.share({ message: [header, ...rows].join('\n') });
+  };
+
+  // JSON backup that can actually be restored: a real file, shared through the
+  // OS sheet, holding every row with its id and timestamps intact.
+  const backupJson = async () => {
+    try {
+      const json = serializeBackup(entries, Date.now());
+      const file = new File(Paths.cache, `streka-backup-${dayOf(Date.now())}.json`);
+      if (file.exists) file.delete();
+      file.create();
+      file.write(json);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(file.uri, {
+          mimeType: 'application/json',
+          dialogTitle: 'Streka backup',
+          UTI: 'public.json',
+        });
+      } else {
+        await Share.share({ message: json });
+      }
+    } catch {
+      showToast('Backup failed', 'Could not create the backup file.');
+    }
+  };
+
+  // Restore replaces everything on the phone, so it confirms first and rejects
+  // any file that is not a clean Streka backup before touching the store.
+  const restoreJson = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+      if (res.canceled || !res.assets[0]) return;
+      const restored = parseBackup(await new File(res.assets[0].uri).text());
+      Alert.alert(
+        'Restore this backup?',
+        `It holds ${restored.length} entries. This replaces everything currently on this phone.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Restore',
+            style: 'destructive',
+            onPress: () => {
+              replaceAll(restored);
+              showToast('Backup restored', `${restored.length} entries are back on this phone.`);
+            },
+          },
+        ],
+      );
+    } catch (err) {
+      showToast('Restore failed', err instanceof BackupError ? err.message : 'Could not read that file.');
+    }
   };
 
   return (
@@ -209,11 +284,16 @@ export default function Settings() {
         />
         <Row
           title="Nudge"
-          sub={`Days you haven't logged · ${settings.nudge.time}`}
-          onPress={() => setTimeSheet(true)}
+          sub={
+            nudgesSupported
+              ? `Days you haven't logged · ${settings.nudge.time}`
+              : 'Reminders need the installed app (not Expo Go on Android)'
+          }
+          onPress={nudgesSupported ? () => setTimeSheet(true) : undefined}
           right={
             <Toggle
-              on={settings.nudge.enabled}
+              on={settings.nudge.enabled && nudgesSupported}
+              disabled={!nudgesSupported}
               onToggle={() =>
                 settings.set({ nudge: { ...settings.nudge, enabled: !settings.nudge.enabled } })
               }
@@ -247,8 +327,36 @@ export default function Settings() {
 
       <Group>
         <Row
-          title="Export my data"
-          sub="Everything as CSV — it's yours"
+          title="Daily calorie goal"
+          sub="What the meals tile counts against"
+          right={rightLabel(`${settings.kcalGoal.toLocaleString('en-US')} kcal`)}
+          onPress={() => openGoal('kcal')}
+        />
+        <Row
+          title="Daily step goal"
+          sub="What the steps tile counts against"
+          right={rightLabel(settings.stepsGoalDay.toLocaleString('en-US'))}
+          onPress={() => openGoal('steps')}
+          last
+        />
+      </Group>
+
+      <Group>
+        <Row
+          title="Back up my data"
+          sub="A JSON file you can restore later"
+          right={<Chevron />}
+          onPress={() => void backupJson()}
+        />
+        <Row
+          title="Restore from a backup"
+          sub="Replaces everything on this phone"
+          right={<Chevron />}
+          onPress={() => void restoreJson()}
+        />
+        <Row
+          title="Export as CSV"
+          sub="For a spreadsheet, it's yours"
           right={<Chevron />}
           onPress={exportCsv}
           last={!settings.hasAccount}
@@ -290,6 +398,74 @@ export default function Settings() {
           }}
         />
       </LogSheet>
+
+      <LogSheet
+        title={goalSpec?.title ?? ''}
+        visible={goalKind !== null}
+        onClose={() => setGoalKind(null)}
+      >
+        {goalSpec ? (
+          <>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 22,
+                paddingVertical: 8,
+              }}
+            >
+              <GoalStep
+                label="−"
+                onPress={() =>
+                  setGoalDraft((v) => Math.max(goalSpec.min, v - goalSpec.step))
+                }
+              />
+              <View style={{ alignItems: 'center', minWidth: 150 }}>
+                <Txt size={44} w={900} ls={-0.03} tabular>
+                  {goalDraft.toLocaleString('en-US')}
+                </Txt>
+                <Txt size={12} w={700} color={colors.mutedDark}>
+                  {goalSpec.unit}
+                </Txt>
+              </View>
+              <GoalStep label="+" onPress={() => setGoalDraft((v) => v + goalSpec.step)} />
+            </View>
+            <BigButton
+              label="SAVE GOAL"
+              pad={15}
+              onPress={() => {
+                if (goalKind === 'kcal') settings.set({ kcalGoal: goalDraft });
+                // Keep the weekly steps target the Goals screen shows in step
+                // with the daily one the Board counts against.
+                else settings.set({ stepsGoalDay: goalDraft, stepsGoalWeek: goalDraft * 7 });
+                setGoalKind(null);
+              }}
+            />
+          </>
+        ) : null}
+      </LogSheet>
     </ScrollView>
+  );
+}
+
+function GoalStep({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable98
+      onPress={onPress}
+      scaleTo={0.92}
+      style={{
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: 'rgba(255,255,255,.08)',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Txt size={26} w={800}>
+        {label}
+      </Txt>
+    </Pressable98>
   );
 }

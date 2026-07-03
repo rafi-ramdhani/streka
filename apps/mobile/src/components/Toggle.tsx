@@ -1,10 +1,19 @@
 import { Pressable, View } from 'react-native';
 import { colors } from '../theme';
 
-// 40x24 pill toggle from the prototype (green on, white/gray knob).
-export function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+// 40x24 pill toggle from the prototype (green on, white/gray knob). Disabled
+// dims it and ignores taps, for settings the runtime cannot honor.
+export function Toggle({
+  on,
+  onToggle,
+  disabled,
+}: {
+  on: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <Pressable onPress={onToggle} hitSlop={12}>
+    <Pressable onPress={onToggle} hitSlop={12} disabled={disabled}>
       <View
         style={{
           width: 40,
@@ -12,6 +21,7 @@ export function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) 
           borderRadius: 12,
           backgroundColor: on ? colors.accent : 'rgba(255,255,255,.15)',
           justifyContent: 'center',
+          opacity: disabled ? 0.4 : 1,
         }}
       >
         <View

@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, useWindowDimensions } from 'react-native';
+import { Platform, ScrollView, View, useWindowDimensions } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import {
   dayOf,
   formatDistance,
@@ -14,11 +15,12 @@ import {
   type TrackerId,
 } from '@streka/core';
 import { isDemoData } from '@streka/core';
-import { logActivity, useLogs, useSettings } from '../../src/core';
+import { logActivity, showToast, useLogs, useSettings } from '../../src/core';
 import { healthAppName, useHealthToday } from '../../src/health';
 import { useScreenPad } from '../../src/lib/screenPad';
 import { useToday } from '../../src/lib/useToday';
 import { CoachMark } from '../../src/components/CoachMark';
+import { Pressable98 } from '../../src/components/Pressable98';
 import { SlashMark } from '../../src/components/SlashMark';
 import { StreakChip } from '../../src/components/StreakChip';
 import { SyncPill } from '../../src/components/SyncPill';
@@ -60,6 +62,27 @@ function lastBefore(
   return best;
 }
 
+// Interim Settings entry (TAD Gaps 1): the pixel-final header has no designed
+// entry point, but Settings is unreachable on the device without one. A quiet
+// gear by the sync pill is the least invasive interim until the owner designs
+// the real affordance.
+function SettingsGear() {
+  return (
+    <Pressable98 onPress={() => router.push('/settings')} hitSlop={12} scaleTo={0.9}>
+      <Svg width={19} height={19} viewBox="0 0 24 24">
+        <Path
+          d="M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 13a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"
+          stroke={colors.mutedDark}
+          strokeWidth={2}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </Pressable98>
+  );
+}
+
 export default function Board() {
   const { width } = useWindowDimensions();
   const settings = useSettings();
@@ -91,6 +114,29 @@ export default function Board() {
   const steps = health.steps;
   const stepsPct = Math.round(((steps ?? 0) / settings.stepsGoalDay) * 100);
   const sleep = health.sleep;
+
+  // Steps and sleep have no automatic source on this build (pedometer is
+  // iOS-only; Health Connect / HealthKit sleep need a later build). Tapping a
+  // dashed tile explains why and points at hiding it, so the honest dash is
+  // never a dead end.
+  const stepsInfo = () => {
+    if (Platform.OS === 'android')
+      return showToast(
+        'Steps stay manual for now',
+        'Automatic steps need Health Connect, which arrives in a later build. You can hide this tile in Settings, under My board.',
+      );
+    if (!settings.healthConnected)
+      return showToast(
+        'Steps stay manual',
+        'Connect Apple Health in Settings to fill steps automatically.',
+      );
+    return showToast('Steps from this phone', 'Counted from the motion sensor since midnight.');
+  };
+  const sleepInfo = () =>
+    showToast(
+      'Sleep fills in later',
+      `Automatic sleep needs ${healthAppName}, which arrives in a later build. You can hide this tile in Settings, under My board.`,
+    );
 
   const lastWorkout = lastBefore(entries, today, 'workout');
   const lastRun = lastBefore(entries, today, 'run');
@@ -186,12 +232,15 @@ export default function Board() {
           >
             <StreakChip streak={streakN} />
             <SyncPill />
+            <SettingsGear />
           </View>
         </View>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
           {settings.picked.steps ? (
-            <View
+            <Pressable98
+              onPress={stepsInfo}
+              scaleTo={0.98}
               style={{
                 width: full,
                 backgroundColor: colors.tile,
@@ -218,7 +267,7 @@ export default function Board() {
                 </Txt>
                 {progressBar(stepsPct, 120, 7)}
               </View>
-            </View>
+            </Pressable98>
           ) : null}
 
           {settings.picked.workouts ? (
@@ -381,7 +430,9 @@ export default function Board() {
           ) : null}
 
           {settings.picked.sleep ? (
-            <View
+            <Pressable98
+              onPress={sleepInfo}
+              scaleTo={0.98}
               style={{
                 width: full,
                 backgroundColor: colors.tile,
@@ -408,7 +459,7 @@ export default function Board() {
                     : 'no sleep data yet'
                   : `connect ${healthAppName} to auto-fill`}
               </Txt>
-            </View>
+            </Pressable98>
           ) : null}
         </View>
 

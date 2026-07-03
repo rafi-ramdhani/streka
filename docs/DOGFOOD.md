@@ -13,6 +13,23 @@ left, ordered by how hard it blocks the dogfood.
 
 ---
 
+## Status (2026-07-03): code items done
+
+Every code item below is implemented, typechecked, and (where visible) verified on the
+iOS simulator. What is left is yours, because it needs your hands, not mine:
+
+- **Run the build (item 0).** `eas.json` and the Android/iOS package ids are in place;
+  the actual `eas build` needs your Expo login. Steps in section 0.
+- **The Android device pass (item 9).** Walk the flows on the real phone.
+
+Where an item was flagged "owner input", I took the sensible default and built it
+(interim settings gear, kcal + step goal editors, run-primer honesty line); override any
+of these and I will adjust. Done, per item: 1 settings gear · 2 honest scan gate ·
+3 nudge channel + Expo Go gating · 4 sync-pill copy · 5 steps/sleep info taps ·
+6 run-primer line · 7 goal editors · 8 JSON backup + restore.
+
+---
+
 ## 0. Decide the runtime before day 1
 
 This is a data decision, not just a convenience one. Entries live in SQLite inside the

@@ -94,6 +94,21 @@ function Primer() {
             </View>
           ))}
         </View>
+        <View
+          style={{
+            marginTop: 4,
+            borderRadius: 14,
+            backgroundColor: 'rgba(255,255,255,.05)',
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+          }}
+        >
+          <Txt size={12} w={600} lineHeight={1.45} color={colors.mutedDark}>
+            In this build, keep Streka on screen while you run. The app holds the screen
+            awake so a live run is never lost. Background and screen-off tracking arrive
+            with a later build.
+          </Txt>
+        </View>
       </View>
       <View style={{ paddingTop: 12, paddingHorizontal: 24, paddingBottom: pad.bottom, gap: 10 }}>
         <BigButton
