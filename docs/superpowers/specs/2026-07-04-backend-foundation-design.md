@@ -22,8 +22,11 @@ endpoints**; it proves the server boots, the schema migrates, and a log row roun
 
 ## Locked decisions
 
-- **Package manager**: pnpm (unchanged). Bun was considered and dropped to avoid re-locking
-  the stable installed mobile build. Turborepo deferred; keep plain pnpm workspace scripts.
+- **Package manager**: pnpm workspaces (unchanged). Bun was considered and dropped to avoid
+  re-locking the stable installed mobile build.
+- **Task orchestration**: Turborepo, layered on top of pnpm. `build`/`dev`/`test`/`typecheck`
+  pipelines with `dependsOn` ordering and caching. Adopted now (not deferred) since the task
+  graph grows with `apps/server` and the Next.js `apps/web`.
 - **Runtime**: Node, via `@hono/node-server`.
 - **API framework**: Hono.
 - **DB**: our own managed Postgres. Local dev via Docker Postgres.
@@ -54,6 +57,12 @@ endpoints**; it proves the server boots, the schema migrates, and a log row roun
 8. Tests: `/health` returns 200; migrations apply cleanly; a `log_entries` insert/select
    round-trips through Drizzle. Tests run against an in-process Postgres (pglite) so CI needs
    no Docker; the Docker Postgres is for real local dev.
+9. Root **`turbo.json`** with `build`, `dev`, `test`, `typecheck` pipelines (`build` uses
+   `dependsOn: ["^build"]`; `test`/`typecheck` depend on upstream builds; `dev` is
+   long-running and uncached). `turbo` added as a root dev dependency, and the root
+   `package.json` `test`/`typecheck` scripts switch from `pnpm -r` / `--filter` to
+   `turbo run ...`. `apps/server`'s package scripts become the tasks Turbo drives. Mobile's
+   build is untouched (its `test`/`typecheck` tasks just join the graph).
 
 ## Schema (Postgres via Drizzle)
 
@@ -95,6 +104,8 @@ S3; S1 only establishes the tables and confirms a round-trip.
 4. `pnpm --filter server test` runs vitest against pglite.
 
 ## Directory layout
+
+Repo root gains `turbo.json` and updated root `package.json` scripts (`turbo run ...`). New app:
 
 ```
 apps/server/
