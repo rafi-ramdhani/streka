@@ -1,4 +1,5 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthedEmailProvider } from '@/components/auth/AuthedContext';
 import { core } from './core';
@@ -51,5 +52,29 @@ describe('Dashboard', () => {
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText('Could not load your data')).toBeTruthy());
+  });
+
+  it('switches sections via the nav pills', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(ok({ cursor: 0, entries: [], settings: [], hasMore: false }));
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+
+    renderDashboard();
+    await waitFor(() => expect(screen.getByText('Today')).toBeTruthy());
+
+    await user.click(screen.getByText('Trends'));
+    expect(screen.getByText('Consistency · last 3 weeks')).toBeTruthy();
+
+    await user.click(screen.getByText('Goals'));
+    expect(screen.getByText('+ New goal')).toBeTruthy();
+  });
+
+  it('renders the sign-out control in the header', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(ok({ cursor: 0, entries: [], settings: [], hasMore: false }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderDashboard();
+
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeTruthy();
   });
 });

@@ -168,4 +168,37 @@ describe('sync engine', () => {
     expect(w.payload).toEqual({ kind: 'run', km: 4.2 });
     expect(w.deleted).toBe(false);
   });
+
+  it('applies a pulled settings row to the store', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      ok({
+        cursor: 1,
+        entries: [],
+        settings: [{ key: 'settings', value: { rhythmDays: 5, kcalGoal: 1800 }, updatedAt: 1 }],
+        hasMore: false,
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await pullAll();
+
+    expect(core.useSettings.getState().rhythmDays).toBe(5);
+    expect(core.useSettings.getState().kcalGoal).toBe(1800);
+  });
+
+  it('rejects when the server returns a non-2xx status', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      pushEntry({
+        id: 'z',
+        ts: 1,
+        day: '2026-07-04',
+        tracker: 'meals',
+        source: 'manual',
+        data: { kind: 'meal', kcal: 100 },
+      }),
+    ).rejects.toThrow('sync failed: 500');
+  });
 });

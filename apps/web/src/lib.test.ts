@@ -50,3 +50,34 @@ describe('updateSettings', () => {
     expect(body.settings[0].value.nudge.enabled).toBe(false);
   });
 });
+
+describe('write failures surface an honest toast', () => {
+  it('logFromWeb keeps the optimistic append but shows the error toast when the push rejects', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('offline'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    logFromWeb({
+      tracker: 'meals',
+      source: 'manual',
+      data: { kind: 'meal', kcal: 550 },
+      title: 'Meal logged',
+    });
+
+    expect(core.useLogs.getState().entries).toHaveLength(1);
+    await vi.waitFor(() => {
+      expect(core.useToast.getState().toast?.title).toBe('Could not save');
+    });
+  });
+
+  it('updateSettings shows the error toast when the push rejects', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('offline'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    updateSettings({ nudge: { enabled: true, time: '08:00' } });
+
+    expect(core.useSettings.getState().nudge.enabled).toBe(true);
+    await vi.waitFor(() => {
+      expect(core.useToast.getState().toast?.title).toBe('Could not save');
+    });
+  });
+});
