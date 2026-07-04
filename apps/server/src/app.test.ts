@@ -13,3 +13,9 @@ test('GET /health returns ok when the db is reachable', async () => {
   expect(res.status).toBe(200);
   expect(await res.json()).toEqual({ ok: true, db: 'up' });
 });
+
+test('an unknown route on the real app returns JSON 404', async () => {
+  const res = await app.request('/no-such-path');
+  expect(res.status).toBe(404);
+  expect(await res.json()).toEqual({ error: 'not found' });
+});

@@ -3,11 +3,13 @@ import type { AppDb } from './db/client';
 import { Hono } from 'hono';
 import { createAuthRoutes } from './auth/routes';
 import { createSyncRoutes } from './sync/routes';
+import { installErrorHandlers } from './errors';
 
 // The db is injected so the same app runs against postgres.js (dev/prod) and
 // pglite (tests). AppDb is the common base both drivers extend.
 export function createApp(db: AppDb) {
   const app = new Hono();
+  installErrorHandlers(app);
 
   app.get('/health', async (c) => {
     try {
