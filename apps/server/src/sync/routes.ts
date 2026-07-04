@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { AppDb } from '../db/client';
 import { Hono } from 'hono';
 import { requireAuth } from '../auth/middleware';
 import { pullChanges, pushEntries, pushSettings } from './merge';
@@ -9,7 +9,7 @@ import { syncRequestSchema } from './validation';
 // than the cursor (including the just-pushed rows, so a stale client self-
 // corrects). Push and pull run in one transaction, so a failed row applies
 // nothing. user_id always comes from the session, never the request body.
-export function createSyncRoutes(db: PgDatabase<any, any>) {
+export function createSyncRoutes(db: AppDb) {
   const app = new Hono<{ Variables: { userId: string } }>();
 
   app.post('/', requireAuth(db), async (c) => {

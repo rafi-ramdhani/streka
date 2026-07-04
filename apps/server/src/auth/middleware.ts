@@ -1,4 +1,4 @@
-import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { AppDb } from '../db/client';
 import type { Context, MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { validateSession } from './sessions';
@@ -14,7 +14,7 @@ export function readToken(c: Context): string | null {
 }
 
 export function requireAuth(
-  db: PgDatabase<any, any>,
+  db: AppDb,
 ): MiddlewareHandler<{ Variables: { userId: string } }> {
   return async (c, next) => {
     const token = readToken(c);

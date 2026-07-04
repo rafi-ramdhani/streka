@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm';
-import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { AppDb } from '../db/client';
 import { sessions } from '../db/schema';
 import { generateSessionToken, hashToken } from './tokens';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export async function createSession(
-  db: PgDatabase<any, any>,
+  db: AppDb,
   userId: string,
 ): Promise<{ token: string; expiresAt: Date }> {
   const { token, tokenHash } = generateSessionToken();
@@ -16,7 +16,7 @@ export async function createSession(
 }
 
 export async function validateSession(
-  db: PgDatabase<any, any>,
+  db: AppDb,
   token: string,
 ): Promise<{ userId: string } | null> {
   const [row] = await db
@@ -29,6 +29,6 @@ export async function validateSession(
   return { userId: row.userId };
 }
 
-export async function revokeSession(db: PgDatabase<any, any>, token: string): Promise<void> {
+export async function revokeSession(db: AppDb, token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
 }

@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { AppDb } from '../db/client';
 import { Hono } from 'hono';
 import { deleteCookie, setCookie } from 'hono/cookie';
 import type { Context } from 'hono';
@@ -31,7 +31,7 @@ function getDummyHash(): Promise<string> {
   return (dummyHash ??= hashPassword('streka-timing-equalizer'));
 }
 
-export function createAuthRoutes(db: PgDatabase<any, any>) {
+export function createAuthRoutes(db: AppDb) {
   const app = new Hono<{ Variables: { userId: string } }>();
 
   app.post('/signup', async (c) => {
