@@ -102,7 +102,7 @@ export function Board({ goGoals }: { goGoals: () => void }) {
   const settings = useSettings();
   const entries = useLogs((s) => s.entries);
   const [modal, setModal] = useState<ModalName>(null);
-  const [weightDraft, setWeightDraft] = useState(72.4);
+  const [weightDraft, setWeightDraft] = useState(70);
 
   const today = todayStr();
   const weekStart = weekStartOf(today);

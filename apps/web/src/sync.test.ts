@@ -144,6 +144,17 @@ describe('sync engine', () => {
     expect(entries[0]!.data).toEqual({ kind: 'meal', kcal: 800 });
   });
 
+  it('pullAll resets settings to defaults so a prior account does not leak', async () => {
+    core.useSettings.getState().set({ rhythmDays: 6, kcalGoal: 3000 });
+    const fetchMock = vi.fn().mockResolvedValueOnce(ok({ cursor: 1, entries: [], settings: [], hasMore: false }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await pullAll();
+
+    expect(core.useSettings.getState().rhythmDays).toBe(3);
+    expect(core.useSettings.getState().kcalGoal).toBe(2200);
+  });
+
   it('toWire maps data.kind to kind and data to payload', () => {
     const w = toWire({
       id: 'a',

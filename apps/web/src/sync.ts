@@ -1,4 +1,5 @@
 import type { LogData, LogEntry, LogSource, Settings, TrackerId } from '@streka/core';
+import { DEFAULT_SETTINGS } from '@streka/core';
 import { core } from './core';
 
 const { useLogs, useSettings } = core;
@@ -91,6 +92,10 @@ function applySyncResult(result: SyncResult): void {
 export async function pullAll(): Promise<void> {
   cursor = 0;
   useLogs.getState().replaceAll([]);
+  // Reset settings to defaults too, so a prior account's settings do not
+  // linger on a shared-browser SPA account switch when the new account has
+  // no server settings row to overlay them.
+  useSettings.getState().set(DEFAULT_SETTINGS);
   let more = true;
   while (more) {
     const result = await postSync({ cursor, entries: [], settings: [] });

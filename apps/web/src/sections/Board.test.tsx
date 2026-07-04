@@ -22,6 +22,7 @@ describe('Board (honest, empty account)', () => {
     expect(screen.queryByText(/auto from watch/i)).toBeNull();
     expect(screen.queryByText('8,246')).toBeNull();
     expect(screen.queryByText(/Sleep/i)).toBeNull();
+    expect(screen.queryByText('72.4')).toBeNull();
     expect(screen.getByText('0-day streak')).toBeTruthy();
   });
 
