@@ -61,3 +61,31 @@ test('rejects an over-limit entries batch', () => {
 test('rejects a setting with a missing value', () => {
   expect(syncRequestSchema.safeParse({ cursor: 0, settings: [{ key: 'k', updatedAt: 1 }] }).success).toBe(false);
 });
+
+const validEntry = {
+  id: '00000000-0000-4000-8000-000000000000',
+  ts: 1,
+  day: '2026-02-28',
+  tracker: 'meals',
+  source: 'manual',
+  kind: 'meal',
+  payload: { kind: 'meal' },
+  deleted: false,
+  updatedAt: 1,
+};
+const withDay = (day: string) => ({ cursor: 0, entries: [{ ...validEntry, day }], settings: [] });
+
+test('rejects an impossible calendar date', () => {
+  expect(syncRequestSchema.safeParse(withDay('2026-13-45')).success).toBe(false);
+  expect(syncRequestSchema.safeParse(withDay('2026-02-30')).success).toBe(false);
+  expect(syncRequestSchema.safeParse(withDay('2026-00-10')).success).toBe(false);
+});
+
+test('accepts a real calendar date, including a leap day', () => {
+  expect(syncRequestSchema.safeParse(withDay('2026-02-28')).success).toBe(true);
+  expect(syncRequestSchema.safeParse(withDay('2024-02-29')).success).toBe(true);
+});
+
+test('rejects Feb 29 in a non-leap year', () => {
+  expect(syncRequestSchema.safeParse(withDay('2026-02-29')).success).toBe(false);
+});
