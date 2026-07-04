@@ -114,7 +114,7 @@ export function Board({ goGoals }: { goGoals: () => void }) {
 
   const close = () => setModal(null);
   const openWeight = () => {
-    setWeightDraft(board.weightKg ?? 72.4);
+    setWeightDraft(board.weightKg ?? 70);
     setModal('weight');
   };
 
@@ -203,59 +203,6 @@ export function Board({ goGoals }: { goGoals: () => void }) {
 
       <div
         style={{
-          background: colors.appBg,
-          color: '#fff',
-          borderRadius: 22,
-          padding: '22px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 16,
-        }}
-      >
-        <div>
-          <TileLabel dark>Steps · auto from watch</TileLabel>
-          <div
-            style={{
-              fontSize: 'clamp(38px,4.5vw,52px)',
-              fontWeight: 900,
-              letterSpacing: '-.03em',
-              lineHeight: 1.05,
-            }}
-          >
-            8,246
-          </div>
-        </div>
-        <div style={{ minWidth: 200, flex: '0 1 300px' }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: 12,
-              fontWeight: 700,
-              color: colors.accentOnDark,
-              marginBottom: 8,
-            }}
-          >
-            <span>72%</span>
-            <span style={{ color: colors.mutedDark }}>goal 11,500</span>
-          </div>
-          <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,.14)' }}>
-            <div
-              style={{
-                width: '72%',
-                height: '100%',
-                borderRadius: 4,
-                background: colors.accent,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
           display: 'grid',
           gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4, 1fr)',
           gap: 12,
@@ -291,8 +238,8 @@ export function Board({ goGoals }: { goGoals: () => void }) {
         ) : (
           <Tile
             label="Workout"
-            title="—"
-            sub="last: Tue · Upper body"
+            title="-"
+            sub="not logged yet"
             onClick={() => setModal('workout')}
             greenBorder
             plusTinted
@@ -301,7 +248,7 @@ export function Board({ goGoals }: { goGoals: () => void }) {
 
         <Tile
           label="Meals"
-          title={board.mealsKcal > 0 ? board.mealsKcal.toLocaleString('en-US') : '—'}
+          title={board.mealsKcal > 0 ? board.mealsKcal.toLocaleString('en-US') : '-'}
           sub={`of ${settings.kcalGoal.toLocaleString('en-US')} kcal`}
           onClick={() => setModal('meal')}
           bar={Math.round((board.mealsKcal / settings.kcalGoal) * 100)}
@@ -309,30 +256,36 @@ export function Board({ goGoals }: { goGoals: () => void }) {
 
         <Tile
           label="Run"
-          title={board.runKm !== undefined ? `${board.runKm} km` : '—'}
-          sub={board.runKm !== undefined ? 'this morning · from phone' : 'last: Tue · 4.2 km'}
+          title={board.runKm !== undefined ? `${board.runKm} km` : '-'}
+          sub={board.runKm !== undefined ? 'logged today' : 'not logged yet'}
           onClick={() => setModal('run')}
         />
 
         <Tile
           label="Weight"
-          title={`${(board.weightKg ?? 72.4).toFixed(1)} kg`}
-          sub={board.weightLoggedToday ? 'updated just now' : '▾ 0.3 this week'}
+          title={board.weightKg !== undefined ? `${board.weightKg.toFixed(1)} kg` : '-'}
+          sub={
+            board.weightLoggedToday
+              ? 'updated today'
+              : board.weightKg !== undefined
+                ? 'not updated today'
+                : 'not logged yet'
+          }
           subColor={board.weightLoggedToday ? colors.accentOnLight : colors.mutedLight}
           onClick={openWeight}
         />
 
         <Tile
           label="Swim"
-          title={board.swimM !== undefined ? `${board.swimM.toLocaleString('en-US')} m` : '—'}
-          sub={board.swimM !== undefined ? 'logged today' : 'last: Mon · 800 m'}
+          title={board.swimM !== undefined ? `${board.swimM.toLocaleString('en-US')} m` : '-'}
+          sub={board.swimM !== undefined ? 'logged today' : 'not logged yet'}
           onClick={() => setModal('swim')}
         />
 
         <Tile
           label="Class"
-          title={board.classDone ? 'Attended ✓' : 'Yoga 18:30'}
-          sub={board.classDone ? 'Yoga · 18:30' : 'booked · click + when done'}
+          title={board.classDone ? 'Attended ✓' : 'Class'}
+          sub={board.classDone ? 'logged today' : 'log a class'}
           onClick={
             board.classDone
               ? undefined
@@ -340,27 +293,11 @@ export function Board({ goGoals }: { goGoals: () => void }) {
                   logFromWeb({
                     tracker: 'classes',
                     source: 'manual',
-                    data: { kind: 'class', name: 'Yoga' },
-                    title: 'Class logged — Yoga',
+                    data: { kind: 'class' },
+                    title: 'Class logged',
                   })
           }
         />
-
-        <div
-          style={{
-            background: '#fff',
-            border: '1px solid rgba(0,0,0,.06)',
-            borderRadius: 20,
-            padding: 18,
-            opacity: 0.9,
-          }}
-        >
-          <TileLabel>Sleep · auto</TileLabel>
-          <div style={{ fontSize: 22, fontWeight: 900, marginTop: 4, lineHeight: 1.1 }}>7h 20m</div>
-          <div style={{ fontSize: 12, fontWeight: 600, marginTop: 2, color: colors.mutedLight }}>
-            from watch
-          </div>
-        </div>
       </div>
 
       <div
@@ -404,7 +341,7 @@ export function Board({ goGoals }: { goGoals: () => void }) {
             ))}
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: colors.mutedLight }}>
-            One more active day hits this week's rhythm — and any log today keeps the daily streak
+            One more active day hits this week's rhythm, and any log today keeps the daily streak
             alive.
           </div>
           <div
@@ -430,7 +367,7 @@ export function Board({ goGoals }: { goGoals: () => void }) {
           padding: '6px 0 20px',
         }}
       >
-        Live workout sessions with a timer run on the phone app — the web board is for quick logs
+        Live workout sessions with a timer run on the phone app. The web board is for quick logs
         and review.
       </div>
 
@@ -451,7 +388,7 @@ export function Board({ goGoals }: { goGoals: () => void }) {
                         tracker: 'workouts',
                         source: 'manual',
                         data: { kind: 'workout', name: `${t.name} · logged on web`, mins: 0 },
-                        title: `Workout logged — ${t.name}`,
+                        title: `Workout logged: ${t.name}`,
                       });
                     }}
                   />
