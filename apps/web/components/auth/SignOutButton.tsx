@@ -10,8 +10,14 @@ export function SignOutButton() {
 
   async function onClick() {
     setBusy(true);
-    await fetch('/api/auth/signout', { method: 'POST', credentials: 'same-origin' });
-    router.replace('/');
+    try {
+      await fetch('/api/auth/signout', { method: 'POST', credentials: 'same-origin' });
+    } catch {
+      // The local session is being abandoned regardless, so a failed request
+      // must not leave the button stuck or surface as an unhandled rejection.
+    } finally {
+      router.replace('/');
+    }
   }
 
   return (

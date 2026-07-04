@@ -23,4 +23,14 @@ describe('SignOutButton', () => {
     expect(url).toBe('/api/auth/signout');
     expect(init).toMatchObject({ method: 'POST', credentials: 'same-origin' });
   });
+
+  it('still returns to / when the sign-out request fails', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('network')) as unknown as typeof fetch;
+    const user = userEvent.setup();
+
+    render(<SignOutButton />);
+    await user.click(screen.getByRole('button', { name: /sign out/i }));
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
+  });
 });
