@@ -6,7 +6,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "turbo run test",
-    "typecheck": "pnpm --filter '!landing' -r exec tsc --noEmit"
+    "typecheck": "pnpm -r exec tsc --noEmit"
   },
   "devDependencies": {
     "turbo": "^2.10.2"
