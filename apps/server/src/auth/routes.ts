@@ -6,6 +6,7 @@ import type { Context } from 'hono';
 import { users } from '../db/schema';
 import { hashPassword, verifyPassword } from './password';
 import { readToken, requireAuth, SESSION_COOKIE } from './middleware';
+import { createRateLimiter, rateLimitMiddleware } from './rate-limit';
 import { createSession, revokeSession } from './sessions';
 import { credentialsSchema } from './validation';
 
@@ -34,7 +35,11 @@ function getDummyHash(): Promise<string> {
 export function createAuthRoutes(db: AppDb) {
   const app = new Hono<{ Variables: { userId: string } }>();
 
-  app.post('/signup', async (c) => {
+  // Per-IP brute-force protection. Single-instance in-memory counters.
+  const signinLimiter = createRateLimiter({ limit: 10, windowMs: 15 * 60 * 1000 });
+  const signupLimiter = createRateLimiter({ limit: 5, windowMs: 60 * 60 * 1000 });
+
+  app.post('/signup', rateLimitMiddleware(signupLimiter), async (c) => {
     const body = await c.req.json().catch(() => null);
     const parsed = credentialsSchema.safeParse(body);
     if (!parsed.success) return c.json({ error: 'invalid email or password format' }, 400);
@@ -51,7 +56,7 @@ export function createAuthRoutes(db: AppDb) {
     return c.json({ user: publicUser(user) }, 201);
   });
 
-  app.post('/signin', async (c) => {
+  app.post('/signin', rateLimitMiddleware(signinLimiter), async (c) => {
     const body = await c.req.json().catch(() => null);
     const parsed = credentialsSchema.safeParse(body);
     if (!parsed.success) return c.json({ error: 'invalid email or password format' }, 400);

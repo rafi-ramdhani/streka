@@ -86,3 +86,22 @@ test('signout without a session is idempotent (204)', async () => {
   const res = await app.request('/auth/signout', { method: 'POST' });
   expect(res.status).toBe(204);
 });
+
+test('signup is rate-limited per IP after 5 attempts in the window', async () => {
+  const headers = { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.7' };
+  const attempt = (n: number) =>
+    app.request('/auth/signup', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ email: `rl-${n}@example.com`, password: 'hunter2horse' }),
+    });
+
+  for (let n = 0; n < 5; n++) {
+    const res = await attempt(n);
+    expect(res.status).toBe(201);
+  }
+  const blocked = await attempt(5);
+  expect(blocked.status).toBe(429);
+  expect(await blocked.json()).toEqual({ error: 'too many requests' });
+  expect(blocked.headers.get('retry-after')).toBeTruthy();
+});
