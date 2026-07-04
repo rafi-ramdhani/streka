@@ -72,6 +72,8 @@ export function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) 
   return (
     <div
       onClick={onToggle}
+      role="switch"
+      aria-checked={on}
       style={{
         width: 40,
         height: 24,
