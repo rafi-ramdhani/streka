@@ -37,3 +37,14 @@ body {
 .pressable:active {
   transform: scale(0.97);
 }
+
+@keyframes toastIn {
+  from {
+    transform: translate(-50%, 14px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
