@@ -34,6 +34,10 @@ export interface SyncResult {
 // nextval('sync_seq')); on (user_id, id) conflict, overwrite and bump server_seq
 // only when the incoming updated_at is strictly greater. A stale push does not
 // change the stored row or its cursor position.
+// Note: on a conflicting insert Postgres still evaluates the server_seq column
+// default nextval() before detecting the conflict, so a rejected (stale) push
+// consumes a sequence value. This only creates harmless gaps; monotonicity and
+// the `> cursor` pull rule are unaffected.
 export async function pushEntries(
   db: PgDatabase<any, any>,
   userId: string,
@@ -125,8 +129,9 @@ export async function pullChanges(
     .limit(limit);
 
   const truncatedGreatest: number[] = [];
-  if (entryRows.length === limit) truncatedGreatest.push(entryRows[entryRows.length - 1]!.serverSeq);
-  if (settingRows.length === limit)
+  if (limit > 0 && entryRows.length === limit)
+    truncatedGreatest.push(entryRows[entryRows.length - 1]!.serverSeq);
+  if (limit > 0 && settingRows.length === limit)
     truncatedGreatest.push(settingRows[settingRows.length - 1]!.serverSeq);
 
   let newCursor: number;

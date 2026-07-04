@@ -77,3 +77,25 @@ test('a malformed entry returns 400', async () => {
   const res = await sync(cookie, { cursor: 0, entries: [entry({ id: 'not-a-uuid' })] });
   expect(res.status).toBe(400);
 });
+
+test('two sequential /sync calls for the same account go through the advisory lock and keep cursor continuity', async () => {
+  const cookie = await signUp('a@example.com');
+
+  const first = await sync(cookie, { cursor: 0, entries: [entry()] });
+  const firstBody = (await first.json()) as { cursor: number; entries: { id: string }[] };
+  expect(firstBody.entries).toHaveLength(1);
+
+  const second = await sync(cookie, { cursor: firstBody.cursor });
+  const secondBody = (await second.json()) as { cursor: number; entries: unknown[] };
+  expect(secondBody.entries).toHaveLength(0);
+  expect(secondBody.cursor).toBe(firstBody.cursor);
+
+  const secondUuid = '5c4f8a2e-1b3d-4f6a-9c8e-2d7b6a1f0e3c';
+  const third = await sync(cookie, {
+    cursor: secondBody.cursor,
+    entries: [entry({ id: secondUuid, updatedAt: 200 })],
+  });
+  const thirdBody = (await third.json()) as { entries: { id: string }[] };
+  expect(thirdBody.entries).toHaveLength(1);
+  expect(thirdBody.entries[0]!.id).toBe(secondUuid);
+});

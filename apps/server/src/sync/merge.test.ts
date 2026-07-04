@@ -122,6 +122,32 @@ test('pagination: hasMore drives a loop that terminates and loses nothing', asyn
   expect(seen.size).toBe(5);
 });
 
+test('pagination across interleaved entries and settings loses nothing when one stream truncates', async () => {
+  const userId = await seedUser('a@example.com');
+  // Interleave writes so entries and settings get interleaved server_seq values.
+  const ids = ['a', 'b', 'c'].map((c) => `${c}0000000-0000-4000-8000-000000000000`);
+  for (let i = 0; i < ids.length; i++) {
+    await pushEntries(db, userId, [entry({ id: ids[i]!, updatedAt: 1 })]);
+    await pushSettings(db, userId, [{ key: `k${i}`, value: i, updatedAt: 1 }]);
+  }
+
+  const seenEntries = new Set<string>();
+  const seenSettings = new Set<string>();
+  let cursor = 0;
+  let hasMore = true;
+  let rounds = 0;
+  while (hasMore) {
+    const page = await pullChanges(db, userId, cursor, 2); // small limit: streams truncate at different points
+    for (const e of page.entries) seenEntries.add(e.id);
+    for (const s of page.settings) seenSettings.add(s.key);
+    cursor = page.cursor;
+    hasMore = page.hasMore;
+    if (++rounds > 30) throw new Error('pagination did not terminate');
+  }
+  expect(seenEntries.size).toBe(3);
+  expect(seenSettings.size).toBe(3);
+});
+
 test('settings sync mirrors entries (LWW, isolation, pull-since)', async () => {
   const a = await seedUser('a@example.com');
   const b = await seedUser('b@example.com');
