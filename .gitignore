@@ -6,3 +6,5 @@ build/
 *.log
 .env*
 .turbo/
+.next/
+*.tsbuildinfo
