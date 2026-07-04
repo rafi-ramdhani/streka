@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
-import { dayOf, type LogData, type LogSource, type TrackerId } from '@streka/core';
-import { core, webToast } from './core';
+import {
+  dayOf,
+  type LogData,
+  type LogEntry,
+  type LogSource,
+  type Settings,
+  type TrackerId,
+} from '@streka/core';
+import { core, webToast, webToastError } from './core';
+import { pushEntry, pushSettings } from './sync';
 
 // Single 860px breakpoint (handoff web spec).
 export function useIsMobile(): boolean {
@@ -14,24 +22,27 @@ export function useIsMobile(): boolean {
   return mobile;
 }
 
+// The one web append path: optimistic local append, push to the account, then
+// confirm honestly (success toast on server ack, error toast on failure).
 export function logFromWeb(input: {
   tracker: TrackerId;
   source: LogSource;
   data: LogData;
   title: string;
 }) {
-  // Same append path as mobile, but the toast always uses the web wording.
   const { tracker, source, data, title } = input;
   const ts = Date.now();
-  core.useLogs.getState().append({
-    id: crypto.randomUUID(),
-    ts,
-    day: dayOf(ts),
-    tracker,
-    source,
-    data,
-  });
-  webToast(title);
+  const entry: LogEntry = { id: crypto.randomUUID(), ts, day: dayOf(ts), tracker, source, data };
+  core.useLogs.getState().append(entry);
+  pushEntry(entry)
+    .then(() => webToast(title))
+    .catch(() => webToastError());
+}
+
+// Settings mutate the whole object, pushed under one sync key.
+export function updateSettings(patch: Partial<Settings>) {
+  core.useSettings.getState().set(patch);
+  pushSettings(core.useSettings.getState()).catch(() => webToastError());
 }
 
 export function todayStr(): string {
