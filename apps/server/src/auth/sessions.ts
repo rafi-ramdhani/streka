@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, lte } from 'drizzle-orm';
 import type { AppDb } from '../db/client';
 import { sessions } from '../db/schema';
 import { generateSessionToken, hashToken } from './tokens';
@@ -31,4 +31,15 @@ export async function validateSession(
 
 export async function revokeSession(db: AppDb, token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
+}
+
+// Housekeeping: drop sessions whose expiry has passed so the table does not grow
+// without bound. Returns how many rows were removed. Called on boot and on an
+// interval from index.ts.
+export async function pruneExpiredSessions(db: AppDb): Promise<number> {
+  const removed = await db
+    .delete(sessions)
+    .where(lte(sessions.expiresAt, new Date()))
+    .returning({ id: sessions.id });
+  return removed.length;
 }

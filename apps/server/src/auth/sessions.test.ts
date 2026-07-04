@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { beforeEach, expect, test } from 'vitest';
 import { sessions, users } from '../db/schema';
 import { makeTestDb } from '../test-helpers';
-import { createSession, revokeSession, validateSession } from './sessions';
+import { createSession, pruneExpiredSessions, revokeSession, validateSession } from './sessions';
 import { hashToken } from './tokens';
 
 let db: Awaited<ReturnType<typeof makeTestDb>>;
@@ -43,4 +43,20 @@ test('revokeSession invalidates the token', async () => {
   const { token } = await createSession(db, u.id);
   await revokeSession(db, token);
   expect(await validateSession(db, token)).toBeNull();
+});
+
+test('pruneExpiredSessions deletes only expired sessions and returns the count', async () => {
+  const u = await makeUser();
+  const { token: live } = await createSession(db, u.id);
+  const { token: dead } = await createSession(db, u.id);
+  await db
+    .update(sessions)
+    .set({ expiresAt: new Date(Date.now() - 1000) })
+    .where(eq(sessions.tokenHash, hashToken(dead)));
+
+  const removed = await pruneExpiredSessions(db);
+
+  expect(removed).toBe(1);
+  expect(await validateSession(db, live)).not.toBeNull();
+  expect(await validateSession(db, dead)).toBeNull();
 });
