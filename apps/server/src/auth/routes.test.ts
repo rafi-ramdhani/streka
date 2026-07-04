@@ -105,3 +105,23 @@ test('signup is rate-limited per IP after 5 attempts in the window', async () =>
   expect(await blocked.json()).toEqual({ error: 'too many requests' });
   expect(blocked.headers.get('retry-after')).toBeTruthy();
 });
+
+test('rate-limit keys on the last X-Forwarded-For hop, so spoofing the left does not bypass', async () => {
+  // The attacker varies the leftmost (client-supplied) XFF value, but our proxy
+  // always appends the same real client IP as the last hop, so every request
+  // must fall in one bucket and the limit still trips.
+  const attempt = (n: number, spoof: string) =>
+    app.request('/auth/signup', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-forwarded-for': `${spoof}, 198.51.100.9` },
+      body: JSON.stringify({ email: `xff-${n}@example.com`, password: 'hunter2horse' }),
+    });
+
+  for (let n = 0; n < 5; n++) {
+    const res = await attempt(n, `10.0.0.${n}`);
+    expect(res.status).toBe(201);
+  }
+  const blocked = await attempt(5, '10.0.0.99');
+  expect(blocked.status).toBe(429);
+  expect(await blocked.json()).toEqual({ error: 'too many requests' });
+});

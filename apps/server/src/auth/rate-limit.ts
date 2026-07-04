@@ -15,9 +15,18 @@ export function createRateLimiter(opts: {
 }): RateLimiter {
   const { limit, windowMs, now = () => Date.now() } = opts;
   const buckets = new Map<string, { count: number; resetAt: number }>();
+  let lastSweep = now();
   return {
     check(key) {
       const t = now();
+      // Bound memory: at most once per window, drop buckets whose window has
+      // passed. Without this the map grows with every distinct key ever seen.
+      if (t - lastSweep >= windowMs) {
+        for (const [k, b] of buckets) {
+          if (b.resetAt <= t) buckets.delete(k);
+        }
+        lastSweep = t;
+      }
       const bucket = buckets.get(key);
       if (!bucket || bucket.resetAt <= t) {
         buckets.set(key, { count: 1, resetAt: t + windowMs });
@@ -32,14 +41,17 @@ export function createRateLimiter(opts: {
   };
 }
 
-// Client IP from the reverse proxy's X-Forwarded-For first hop. Without a proxy
-// the header is absent and everyone shares one bucket (fail toward throttling,
-// never crash).
+// Client IP from the reverse proxy's X-Forwarded-For. With a single trusted
+// proxy in front, the RIGHTMOST entry is the address that proxy observed and
+// appended; any values to its left are client-supplied and spoofable, so we do
+// not trust them. Without the header (no proxy) everyone shares one bucket
+// (fail toward throttling, never crash).
 function clientIp(c: Context): string {
   const xff = c.req.header('x-forwarded-for');
   if (xff) {
-    const first = xff.split(',')[0];
-    if (first && first.trim()) return first.trim();
+    const parts = xff.split(',');
+    const last = parts[parts.length - 1];
+    if (last && last.trim()) return last.trim();
   }
   return 'shared';
 }
