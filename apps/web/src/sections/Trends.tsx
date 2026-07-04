@@ -39,9 +39,9 @@ export function Trends() {
         .sort((a, b) => a.ts - b.ts),
     [entries],
   );
-  const weightNow = weights[weights.length - 1]?.data.kg ?? 72.4;
+  const weightNow = weights.length > 0 ? weights[weights.length - 1]!.data.kg : undefined;
   const weightDelta = useMemo(() => {
-    if (weights.length < 2) return 0;
+    if (weights.length < 2 || weightNow === undefined) return 0;
     const cutoff = addDays(today, -30);
     const old = weights.find((w) => w.day >= cutoff) ?? weights[0]!;
     return weightNow - old.data.kg;
@@ -64,13 +64,11 @@ export function Trends() {
   const bests = useMemo(() => {
     const monthStart = addDays(today, -30);
     let longestRun = 0;
-    let bestSteps = 8246;
     for (const e of entries) {
       if (e.deleted || e.day < monthStart) continue;
       if (e.data.kind === 'run') longestRun = Math.max(longestRun, e.data.km);
-      if (e.data.kind === 'steps') bestSteps = Math.max(bestSteps, e.data.count);
     }
-    return { longestRun, bestSteps, lift: bestLift(entries, monthStart) };
+    return { longestRun, lift: bestLift(entries, monthStart) };
   }, [entries, today]);
 
   const bars = isWeek
@@ -181,12 +179,16 @@ export function Trends() {
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}
           >
             <TileLabel>Weight</TileLabel>
-            <div style={{ fontSize: 12, fontWeight: 800, color: colors.accentOnLight }}>
-              {weightDelta <= 0 ? '▾' : '▴'} {Math.abs(weightDelta).toFixed(1)} kg in 30 days
-            </div>
+            {weights.length >= 2 ? (
+              <div style={{ fontSize: 12, fontWeight: 800, color: colors.accentOnLight }}>
+                {weightDelta <= 0 ? '▾' : '▴'} {Math.abs(weightDelta).toFixed(1)} kg in 30 days
+              </div>
+            ) : null}
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-            <div style={{ fontSize: 32, fontWeight: 900 }}>{weightNow.toFixed(1)}</div>
+            <div style={{ fontSize: 32, fontWeight: 900 }}>
+              {weightNow !== undefined ? weightNow.toFixed(1) : '-'}
+            </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: colors.mutedLight }}>kg</div>
           </div>
           {line ? (
@@ -214,7 +216,7 @@ export function Trends() {
           <div style={{ display: 'flex', gap: 24, marginTop: 14, flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontSize: 22, fontWeight: 900 }}>
-                {bests.lift ? `${bests.lift.kg} kg` : '—'}
+                {bests.lift ? `${bests.lift.kg} kg` : '-'}
               </div>
               <div style={{ fontSize: 11, fontWeight: 600, color: colors.mutedLight }}>
                 {bests.lift ? bests.lift.exercise.toLowerCase() : 'top lift'}
@@ -226,14 +228,6 @@ export function Trends() {
               </div>
               <div style={{ fontSize: 11, fontWeight: 600, color: colors.mutedLight }}>
                 longest run
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 900 }}>
-                {bests.bestSteps.toLocaleString('en-US')}
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: colors.mutedLight }}>
-                best step day
               </div>
             </div>
           </div>
