@@ -5,7 +5,7 @@ import { createAuthRoutes } from './auth/routes';
 import { createSyncRoutes } from './sync/routes';
 
 // The db is injected so the same app runs against postgres.js (dev/prod) and
-// pglite (tests). PgDatabase<any, any> is the common base both drivers extend.
+// pglite (tests). AppDb is the common base both drivers extend.
 export function createApp(db: AppDb) {
   const app = new Hono();
 

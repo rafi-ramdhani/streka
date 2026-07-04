@@ -1,5 +1,5 @@
 import { and, asc, eq, gt, sql } from 'drizzle-orm';
-import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { AppDb } from '../db/client';
 import { logEntries, settings } from '../db/schema';
 import type { PushEntry, PushSetting } from './validation';
 
@@ -39,7 +39,7 @@ export interface SyncResult {
 // consumes a sequence value. This only creates harmless gaps; monotonicity and
 // the `> cursor` pull rule are unaffected.
 export async function pushEntries(
-  db: PgDatabase<any, any>,
+  db: AppDb,
   userId: string,
   entries: PushEntry[],
 ): Promise<void> {
@@ -78,7 +78,7 @@ export async function pushEntries(
 }
 
 export async function pushSettings(
-  db: PgDatabase<any, any>,
+  db: AppDb,
   userId: string,
   items: PushSetting[],
 ): Promise<void> {
@@ -109,7 +109,7 @@ export async function pushSettings(
 // nothing was returned); if a stream truncated, it is the minimum over truncated
 // streams of that stream's greatest returned seq, and hasMore is true.
 export async function pullChanges(
-  db: PgDatabase<any, any>,
+  db: AppDb,
   userId: string,
   cursor: number,
   limit = PULL_LIMIT,
