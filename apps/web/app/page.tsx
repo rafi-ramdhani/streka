@@ -681,7 +681,7 @@ export default function Home() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: '700', color: '#6b736b' }}>
                   <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#17c25f' }} />
-                  Synced from iPhone · just now
+                  Synced · just now
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: '10px' }}>
@@ -690,8 +690,8 @@ export default function Home() {
                   <div style={{ fontSize: '10.5px', fontWeight: '700', color: '#6b736b' }}>day streak</div>
                 </div>
                 <div style={{ background: '#f5f7f3', borderRadius: '14px', padding: '14px' }}>
-                  <div style={{ fontSize: '24px', fontWeight: '900' }}>8,246</div>
-                  <div style={{ fontSize: '10.5px', fontWeight: '700', color: '#6b736b' }}>steps today</div>
+                  <div style={{ fontSize: '24px', fontWeight: '900' }}>1,430</div>
+                  <div style={{ fontSize: '10.5px', fontWeight: '700', color: '#6b736b' }}>kcal today</div>
                 </div>
                 <div style={{ background: '#f5f7f3', borderRadius: '14px', padding: '14px' }}>
                   <div style={{ fontSize: '24px', fontWeight: '900' }}>
