@@ -1,17 +1,39 @@
-import { useState } from 'react';
+'use client';
+
+import { useEffect, useState } from 'react';
 import { colors } from '@streka/tokens';
+import { useAuthedEmail } from '@/components/auth/AuthedContext';
+import { SignOutButton } from '@/components/auth/SignOutButton';
 import { Slash } from './components/bits';
 import { Toast } from './components/Toast';
 import { Board } from './sections/Board';
 import { Goals } from './sections/Goals';
 import { Trends } from './sections/Trends';
 import { useIsMobile } from './lib';
+import { pullAll } from './sync';
 
 export type Section = 'board' | 'trends' | 'goals';
+type Load = 'loading' | 'ready' | 'error';
 
-export function App() {
+export function Dashboard() {
   const [section, setSection] = useState<Section>('board');
+  const [load, setLoad] = useState<Load>('loading');
   const mobile = useIsMobile();
+  const email = useAuthedEmail();
+
+  useEffect(() => {
+    let active = true;
+    pullAll()
+      .then(() => {
+        if (active) setLoad('ready');
+      })
+      .catch(() => {
+        if (active) setLoad('error');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const pill = (name: Section, label: string) => {
     const on = section === name;
@@ -32,6 +54,14 @@ export function App() {
         {label}
       </div>
     );
+  };
+
+  const centered: React.CSSProperties = {
+    textAlign: 'center',
+    padding: '80px 0',
+    fontSize: 14,
+    fontWeight: 700,
+    color: colors.mutedLight,
   };
 
   return (
@@ -59,14 +89,7 @@ export function App() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginRight: 6 }}>
             <Slash size={21} color={colors.appBg} />
-            <span
-              style={{
-                font: "900 italic 20px 'Archivo'",
-                letterSpacing: '-.03em',
-              }}
-            >
-              STREKA
-            </span>
+            <span style={{ font: "900 italic 20px 'Archivo'", letterSpacing: '-.03em' }}>STREKA</span>
           </div>
           <div style={{ display: 'flex', gap: 4, background: '#f0f2ee', borderRadius: 999, padding: 3 }}>
             {pill('board', 'Board')}
@@ -74,35 +97,20 @@ export function App() {
             {pill('goals', 'Goals')}
           </div>
           <div style={{ flex: 1 }} />
-          <div
+          <span
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 11.5,
+              fontSize: 12.5,
               fontWeight: 700,
               color: colors.mutedLight,
+              maxWidth: 200,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: colors.accent }} />
-            Synced · iPhone, just now
-          </div>
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: '50%',
-              background: '#d8e4d6',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: 12.5,
-              color: '#3a4a3a',
-            }}
-          >
-            JT
-          </div>
+            {email}
+          </span>
+          <SignOutButton />
         </div>
       </div>
 
@@ -115,9 +123,17 @@ export function App() {
           padding: mobile ? '16px 16px 40px' : '28px 24px 56px',
         }}
       >
-        {section === 'board' ? <Board goGoals={() => setSection('goals')} /> : null}
-        {section === 'trends' ? <Trends /> : null}
-        {section === 'goals' ? <Goals /> : null}
+        {load === 'loading' ? (
+          <div style={centered}>Loading your data</div>
+        ) : load === 'error' ? (
+          <div style={centered}>Could not load your data</div>
+        ) : (
+          <>
+            {section === 'board' ? <Board goGoals={() => setSection('goals')} /> : null}
+            {section === 'trends' ? <Trends /> : null}
+            {section === 'goals' ? <Goals /> : null}
+          </>
+        )}
       </div>
       <Toast />
     </div>

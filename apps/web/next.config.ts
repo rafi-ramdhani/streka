@@ -6,8 +6,9 @@ import type { NextConfig } from 'next';
 const apiOrigin = process.env.STREKA_API_ORIGIN ?? 'http://localhost:3001';
 
 const nextConfig: NextConfig = {
-  // @streka/tokens ships raw TS (main: src/index.ts); Next must transpile it.
-  transpilePackages: ['@streka/tokens'],
+  // @streka/tokens and @streka/core ship raw TS (main: src/index.ts); the /app
+  // route now bundles both, so Next must transpile them.
+  transpilePackages: ['@streka/tokens', '@streka/core'],
   async rewrites() {
     return [{ source: '/api/:path*', destination: `${apiOrigin}/:path*` }];
   },
