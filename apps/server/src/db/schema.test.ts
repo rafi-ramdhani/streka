@@ -1,4 +1,4 @@
-import { asc } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { beforeEach, expect, test } from 'vitest';
 import { logEntries, users } from './schema';
 import { makeTestDb } from '../test-helpers';
@@ -43,4 +43,24 @@ test('composite PK lets two users hold the same client id independently', async 
   await db.insert(logEntries).values(row('shared-id', b, 2));
   const rows = await db.select().from(logEntries);
   expect(rows).toHaveLength(2);
+});
+
+test('log_entries round-trips a jsonb payload and defaults deleted to false', async () => {
+  const userId = await seedUser('jt@example.com');
+  await db.insert(logEntries).values({
+    id: 'test-entry-1',
+    userId,
+    ts: 1_720_000_000_000,
+    day: '2026-07-04',
+    tracker: 'steps',
+    source: 'manual',
+    kind: 'steps',
+    payload: { kind: 'steps', count: 8200 },
+    updatedAt: 1_720_000_000_000,
+    // deleted omitted on purpose: column default should apply
+  });
+  const rows = await db.select().from(logEntries).where(eq(logEntries.id, 'test-entry-1'));
+  expect(rows).toHaveLength(1);
+  expect(rows[0]!.payload).toEqual({ kind: 'steps', count: 8200 });
+  expect(rows[0]!.deleted).toBe(false);
 });
